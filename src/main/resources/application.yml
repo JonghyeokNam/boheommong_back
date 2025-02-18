@@ -15,7 +15,7 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:13306/boheommong?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://boheommong.ch8kk2u4asui.ap-northeast-2.rds.amazonaws.com/boheommong
     username: ${MYSQLDB_USERNAME}
     password: ${MYSQLDB_PASSWORD}
 
