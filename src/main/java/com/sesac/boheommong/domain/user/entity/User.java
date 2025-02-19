@@ -13,8 +13,9 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SQLDelete(sql = "UPDATE member SET is_deleted = true, deleted_at = now() where id = ?")
+@SQLDelete(sql = "UPDATE users SET is_deleted = true, deleted_at = now() where id = ?")
 @SQLRestriction("is_deleted is FALSE")
+@Table(name = "users")
 public class User extends BaseEntity {
 
     @Id
@@ -23,10 +24,9 @@ public class User extends BaseEntity {
 
     @NotNull private String oauthId;
     @NotNull private String email;
-    @NotNull private String nickname;
+    @NotNull private String name;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
-
 }
