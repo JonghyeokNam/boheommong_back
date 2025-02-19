@@ -48,5 +48,5 @@ spring:
             user-name-attribute: id
 
 jwt:
-  secretKey: ${JWT_SECRET_KEY_CODE}
-  issuer: demo
+  secret-key: ${JWT_SECRET_KEY_CODE}
+  issuer: ${JWT_ISSUER}
