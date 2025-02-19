@@ -13,14 +13,14 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SQLDelete(sql = "UPDATE users SET is_deleted = true, deleted_at = now() where id = ?")
+@SQLDelete(sql = "UPDATE users SET is_deleted = true, deleted_at = now() where user_id = ?")
 @SQLRestriction("is_deleted is FALSE")
 @Table(name = "users")
 public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long userId;
 
     @NotNull private String oauthId;
     @NotNull private String email;
