@@ -18,10 +18,10 @@ public class BookmarkController {
 
     @GetMapping("/bookmarks/state")
     public Response<Boolean> getBookmarkState(
-            @RequestParam String email,
+            @RequestParam String loginEmail,
             @RequestParam Long productId
     ) {
-        Boolean state = bookmarkService.getState(email, productId);
+        Boolean state = bookmarkService.getState(loginEmail, productId);
         return Response.success(state);
     }
 
