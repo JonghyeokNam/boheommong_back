@@ -25,8 +25,8 @@ public class BookmarkServiceImpl implements BookmarkService {
     private final InsuranceProductRepository insuranceProductRepository;
 
     @Override
-    public Boolean getState(String email, Long productId) {
-        User user = userRepository.findByEmail(email)
+    public Boolean getState(String loginEmail, Long productId) {
+        User user = userRepository.findByLoginEmail(loginEmail)
                 .orElseThrow(() -> new RuntimeException("유저가 존재하지 않습니다."));
 
         InsuranceProduct product = insuranceProductRepository.findInsuranceProductByProductId(productId)
