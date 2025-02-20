@@ -1,4 +1,4 @@
-package com.sesac.boheommong.domain.insuranceproduct.entity;
+package com.sesac.boheommong.domain.insurance.entity;
 
 import com.sesac.boheommong.global.entity.BaseEntity;
 import jakarta.persistence.*;

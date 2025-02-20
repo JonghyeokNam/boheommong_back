@@ -2,8 +2,8 @@ package com.sesac.boheommong.config; // 또는 com.sesac.boheommong.runner
 
 import com.sesac.boheommong.domain.userhealthinfo.entity.UserHealthInfo;
 import com.sesac.boheommong.domain.userhealthinfo.repository.UserHealthInfoRepository;
-import com.sesac.boheommong.domain.insuranceproduct.entity.InsuranceProduct;
-import com.sesac.boheommong.domain.insuranceproduct.repository.InsuranceProductRepository;
+import com.sesac.boheommong.domain.insurance.entity.InsuranceProduct;
+import com.sesac.boheommong.domain.insurance.repository.InsuranceProductRepository;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
