@@ -10,7 +10,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
 @Entity
 @Table(name = "insurance_products")
 @SQLDelete(sql = "UPDATE insurance_products SET is_deleted = true, deleted_at = now() WHERE product_id = ?")

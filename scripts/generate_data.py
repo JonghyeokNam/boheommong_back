@@ -1,8 +1,44 @@
 import random
 import csv
+import os  # 파일 존재 여부 체크용
 
 #############################
-# 1. 회사별 상품명 확장 (100개)
+# 1) User 더미 데이터
+#############################
+
+roles = ["USER", "ADMIN"]
+family_names = ["김", "이", "박", "최", "정", "강", "조", "윤", "장", "오", "한", "신", "서", "유", "권", "황", "안", "송", "전", "홍"]
+given_names = ["민수","영희","도윤","서연","지민","하윤","서현","지원","현우","유정","가영","상민","동혁","다은","민기","화경","정은","혜정"]
+
+def generate_users(num=500):
+    data = []
+    for user_id in range(1, num+1):
+        f_name = random.choice(family_names)
+        g_name = random.choice(given_names)
+        user_name = f_name + g_name  # 예: 김민수
+
+        login_email = f"kakao_{random.randint(1000,9999)}@kakao.com"
+        user_email  = f"user{random.randint(1000,9999)}@gmail.com"
+        role        = random.choice(roles)
+
+        data.append([
+            user_id,
+            login_email,
+            user_email,
+            user_name,
+            role
+        ])
+    return data
+
+def save_users_csv(users_data, filename="users.csv"):
+    headers = ["user_id", "loginEmail", "userEmail", "name", "role"]
+    with open(filename, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(headers)
+        writer.writerows(users_data)
+
+#############################
+# 2) 보험상품 준비
 #############################
 
 base_products = {
@@ -337,13 +373,10 @@ base_coverage_details = {
     ]
 }
 
-# (생략된 부분) - 나머지 카테고리 내용도 위에서처럼 20개 이상 준비
-# -----------------------------------------------------------------------------
-
-# 2-1) 카테고리 목록
+# 카테고리 목록
 categories = list(base_coverage_details.keys())
 
-# 2-2) 카테고리별 50개로 확장
+# 카테고리별 50개 확장
 coverage_details_map_final = {}
 for cat, details in base_coverage_details.items():
     new_list = details[:]
@@ -356,15 +389,13 @@ for cat, details in base_coverage_details.items():
 
 
 #############################
-# 3. CSV 생성 로직
+# (3) 보험상품 생성로직
 #############################
 
-def generate_insurance_products(num=1000):
+def generate_insurance_products(num=500):
     data = []
     product_id_start = 1
-
     for i in range(num):
-        # 회사, 상품명, 카테고리, 보장내용 등 무작위 조합
         company = random.choice(list(possible_products_final.keys()))
         product_name = random.choice(possible_products_final[company])
 
@@ -372,9 +403,9 @@ def generate_insurance_products(num=1000):
         coverage_list = coverage_details_map_final[category]
         coverage_details = random.choice(coverage_list)
 
-        monthly_premium = random.randint(15000, 60000)  # 1.5만 ~ 6만
-        min_age = random.choice([0, 18, 20, 30])
-        max_age = random.choice([60, 65, 70, 75, 80])
+        monthly_premium = random.randint(15000,60000)
+        min_age = random.choice([0,18,20,30])
+        max_age = random.choice([60,65,70,75,80])
         if min_age > max_age:
             min_age, max_age = max_age, min_age
 
@@ -389,27 +420,25 @@ def generate_insurance_products(num=1000):
             max_age
         ])
         product_id_start += 1
-
     return data
 
 def save_insurance_products_csv(data, filename="insurance_products.csv"):
-    headers = ["product_id", "company_name", "product_name", "product_category",
-               "coverage_details", "monthly_premium", "min_age", "max_age"]
+    headers = ["product_id","company_name","product_name","product_category","coverage_details","monthly_premium","min_age","max_age"]
     with open(filename, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(headers)
         writer.writerows(data)
 
+#############################
+# (4) 사용자 건강정보
+#############################
 
-#############################
-# 사용자 건강정보 (사람 정보)
-#############################
 first_names = ["김", "이", "박", "최", "정", "강", "조", "윤", "장", "오", "한", "신", "서", "유", "권", "황", "안", "송", "전", "홍"]
 middle_tail_names = ["나라","민기","용기","화경","정은","혜정","윤지","영찬","지영","지수","준빈","기영","진원",
                      "채연","종혁","유진","민수","민지","영희","미영","재훈","도윤","서연","지민","하윤","서현",
                      "지원","현우","유정","가영","상민","동혁","다은"]
 
-def generate_user_health_info(num=1000):
+def generate_user_health_info(num=500):
     data = []
     health_id_start = 1
 
@@ -421,18 +450,17 @@ def generate_user_health_info(num=1000):
         health_id = health_id_start
         fn = random.choice(first_names)
         mn = random.choice(middle_tail_names)
-        user_name = fn + mn  # 예: 김서현, 이재훈
+        user_name = fn + mn
 
-        age = random.randint(0, 85)
-        gender = random.choice(["M", "F"])
-        height = random.uniform(150.0, 180.0)
-        weight = random.uniform(45.0, 90.0)
-        bmi = round(weight / ((height/100)**2), 1)
+        age = random.randint(0,85)
+        gender = random.choice(["M","F"])
+        height = round(random.uniform(150.0,180.0),1)
+        weight = round(random.uniform(45.0,90.0),1)
+        bmi = round(weight / ((height/100)**2),1)
 
-        is_smoker = random.randint(0, 1)
-        is_drinker = random.randint(0, 1)
+        is_smoker  = random.randint(0,1)
+        is_drinker = random.randint(0,1)
 
-        # 만성질환
         has_chronic_disease = 0
         cdl = ""
         if random.random() < 0.3:
@@ -440,18 +468,15 @@ def generate_user_health_info(num=1000):
             pick = random.sample(chronic_opts[1:], random.randint(1,2))
             cdl = ", ".join(pick)
 
-        # 수술 이력
         sh = ""
         if random.random() < 0.2:
             sh = random.choice(surgery_opts[1:])
 
-        # 혈압
-        systolic = random.randint(100, 160)
-        diastolic = random.randint(60, 100)
+        systolic  = random.randint(100,160)
+        diastolic = random.randint(60,100)
         bp = f"{systolic}/{diastolic}"
 
-        # 혈당
-        sugar = random.randint(80, 140)
+        sugar= random.randint(80,140)
         bs = f"{sugar} mg/dL"
 
         data.append([
@@ -459,8 +484,8 @@ def generate_user_health_info(num=1000):
             user_name,
             age,
             gender,
-            round(height,1),
-            round(weight,1),
+            height,
+            weight,
             bmi,
             is_smoker,
             is_drinker,
@@ -476,31 +501,40 @@ def generate_user_health_info(num=1000):
 
 def save_user_health_info_csv(data, filename="user_health_info.csv"):
     headers = [
-        "health_id", "user_name", "age", "gender", "height", "weight", "bmi",
-        "is_smoker", "is_drinker", "has_chronic_disease", "chronic_disease_list",
-        "surgery_history", "blood_pressure", "blood_sugar"
+        "health_id","user_name","age","gender","height","weight","bmi",
+        "is_smoker","is_drinker","has_chronic_disease","chronic_disease_list",
+        "surgery_history","blood_pressure","blood_sugar"
     ]
     with open(filename, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(headers)
         writer.writerows(data)
 
-
 #############################
-# 메인 실행부
+# (5) 메인
 #############################
 if __name__ == "__main__":
-    # 1) 회사/카테고리 확장 + 사용자/상품 생성
-    # 2) CSV 쓰기
+    # CSV가 이미 있으면 스킵
+    if os.path.exists("users.csv") or os.path.exists("user_health_info.csv") or os.path.exists("insurance_products.csv"):
+        print("이미 CSV 파일이 존재하므로 생성 스킵!")
+        exit(0)
 
-    # 상품 더미 1,000건
-    products_data = generate_insurance_products(num=1000)
+    # (A) User 500개
+    users_data = generate_users(num=500)
+    save_users_csv(users_data, "users.csv")
+
+    # (B) 보험상품 500개
+    # (확장, 카테고리)
+    # 이미 base_products가 15개, 100개 확장
+    # coverage_details -> 50개 확장
+    products_data = generate_insurance_products(num=500)
     save_insurance_products_csv(products_data, "insurance_products.csv")
 
-    # 사용자 건강 더미 1,000건
-    users_data = generate_user_health_info(num=1000)
-    save_user_health_info_csv(users_data, "user_health_info.csv")
+    # (C) 건강정보 500개
+    health_data = generate_user_health_info(num=500)
+    save_user_health_info_csv(health_data, "user_health_info.csv")
 
     print("CSV 파일 생성 완료!")
-    print("- insurance_products.csv")
-    print("- user_health_info.csv")
+    print(" - users.csv")
+    print(" - user_health_info.csv")
+    print(" - insurance_products.csv")
