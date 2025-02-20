@@ -2,13 +2,19 @@ package com.sesac.boheommong.domain.insurance.entity;
 
 import com.sesac.boheommong.global.entity.BaseEntity;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Getter
-@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "insurance_products")
+@SQLDelete(sql = "UPDATE insurance_products SET is_deleted = true, deleted_at = now() WHERE product_id = ?")
+@SQLRestriction("is_deleted = FALSE")
 public class InsuranceProduct extends BaseEntity {
 
     @Id
