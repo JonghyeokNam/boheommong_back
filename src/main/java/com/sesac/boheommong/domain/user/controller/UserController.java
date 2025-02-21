@@ -4,7 +4,6 @@ import com.sesac.boheommong.domain.user.dto.request.UserInfoRequestDto;
 import com.sesac.boheommong.domain.user.dto.response.UserResponseDto;
 import com.sesac.boheommong.domain.user.entity.User;
 import com.sesac.boheommong.domain.user.service.UserService;
-import com.sesac.boheommong.domain.userhealthinfo.entity.UserHealthInfo;
 import com.sesac.boheommong.global.jwt.service.TokenProvider;
 import com.sesac.boheommong.global.jwt.service.TokenService;
 import com.sesac.boheommong.global.oauth2.util.CookieUtil;
