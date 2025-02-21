@@ -1,4 +1,4 @@
-package com.sesac.boheommong.domain.userhealthinfo.entity;
+package com.sesac.boheommong.domain.userhealth.entity;
 
 import com.sesac.boheommong.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -8,8 +8,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "user_health_info")
-public class UserHealthInfo extends BaseEntity {
+@Table(name = "user_health")
+public class UserHealth extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

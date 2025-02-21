@@ -4,8 +4,8 @@ import com.sesac.boheommong.domain.user.entity.User;
 import com.sesac.boheommong.domain.user.enums.Role;
 import com.sesac.boheommong.domain.user.repository.UserRepository;
 
-import com.sesac.boheommong.domain.userhealthinfo.entity.UserHealthInfo;
-import com.sesac.boheommong.domain.userhealthinfo.repository.UserHealthInfoRepository;
+import com.sesac.boheommong.domain.userhealth.entity.UserHealth;
+import com.sesac.boheommong.domain.userhealth.repository.UserHealthRepository;
 
 import com.sesac.boheommong.domain.insurance.entity.InsuranceProduct;
 import com.sesac.boheommong.domain.insurance.repository.InsuranceProductRepository;
@@ -36,7 +36,7 @@ public class CsvDataLoader implements CommandLineRunner {
     @Autowired
     private UserRepository userRepo;
     @Autowired
-    private UserHealthInfoRepository userHealthRepo;
+    private UserHealthRepository userHealthRepo;
     @Autowired
     private InsuranceProductRepository productRepo;
 
@@ -110,9 +110,9 @@ public class CsvDataLoader implements CommandLineRunner {
                 Reader reader = Files.newBufferedReader(Paths.get(csvPath));
                 CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())
         ) {
-            List<UserHealthInfo> list = new ArrayList<>();
+            List<UserHealth> list = new ArrayList<>();
             for (CSVRecord record : csvParser) {
-                UserHealthInfo info = new UserHealthInfo();
+                UserHealth info = new UserHealth();
                 // @GeneratedValue면 healthId는 굳이 set 안 해도 됨
 
                 info.setUserName(record.get("user_name"));
