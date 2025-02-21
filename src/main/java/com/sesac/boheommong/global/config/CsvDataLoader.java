@@ -1,27 +1,23 @@
-package com.sesac.boheommong.config;
-
-import com.sesac.boheommong.domain.user.entity.User;
-import com.sesac.boheommong.domain.user.enums.Role;
-import com.sesac.boheommong.domain.user.repository.UserRepository;
-
-import com.sesac.boheommong.domain.userhealth.entity.UserHealth;
-import com.sesac.boheommong.domain.userhealth.repository.UserHealthRepository;
+package com.sesac.boheommong.global.config;
 
 import com.sesac.boheommong.domain.insurance.entity.InsuranceProduct;
 import com.sesac.boheommong.domain.insurance.repository.InsuranceProductRepository;
-
+import com.sesac.boheommong.domain.user.entity.User;
+import com.sesac.boheommong.domain.user.enums.Role;
+import com.sesac.boheommong.domain.user.repository.UserRepository;
+import com.sesac.boheommong.domain.userhealth.entity.UserHealth;
+import com.sesac.boheommong.domain.userhealth.repository.UserHealthRepository;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.io.Reader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
