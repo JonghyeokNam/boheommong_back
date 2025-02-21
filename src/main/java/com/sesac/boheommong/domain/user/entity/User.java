@@ -1,6 +1,7 @@
 package com.sesac.boheommong.domain.user.entity;
 
 import com.sesac.boheommong.domain.user.enums.Role;
+import com.sesac.boheommong.domain.userhealthinfo.entity.UserHealthInfo;
 import com.sesac.boheommong.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
