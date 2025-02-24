@@ -1,7 +1,6 @@
 package com.sesac.boheommong.domain.user.service;
 
 import com.sesac.boheommong.domain.user.dto.request.UserRequestDto;
-import com.sesac.boheommong.domain.user.dto.request.UserRequestDto;
 import com.sesac.boheommong.domain.user.dto.response.UserResponseDto;
 import com.sesac.boheommong.domain.user.entity.User;
 import com.sesac.boheommong.domain.user.repository.UserRepository;
