@@ -29,9 +29,8 @@ import org.hibernate.annotations.SQLRestriction;
  *  - 자녀(hasChildren) / 자가주택(hasOwnHouse) / 반려동물(hasPet) / 가족력(hasFamilyHistory): Boolean
  */
 @Getter
-@Setter
 @Entity
-@NoArgsConstructor(access = AccessLevel.PUBLIC)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLDelete(sql = "UPDATE user_health SET is_deleted = true, deleted_at = now() WHERE health_id = ?")
 @SQLRestriction("is_deleted = FALSE")
 @Table(name = "user_health")

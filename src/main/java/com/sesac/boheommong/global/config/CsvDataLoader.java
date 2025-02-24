@@ -68,7 +68,7 @@ public class CsvDataLoader implements CommandLineRunner {
     /**
      * [users.csv] -> User 엔티티
      * CSV Header: user_id, loginEmail, userEmail, name, role
-     * role: "ADMIN", "USER", "PARTNER" etc. (Enum)
+     * role: "ADMIN", "USER", "PARTNER" etc.
      */
     private void loadUsers(String csvPath) {
         try (
@@ -77,7 +77,6 @@ public class CsvDataLoader implements CommandLineRunner {
         ) {
             List<User> userList = new ArrayList<>();
             for (CSVRecord record : csvParser) {
-                // user_id (AutoIncrement, 굳이 set 안함)
                 String loginEmail = record.get("loginEmail");
                 String userEmail  = record.get("userEmail");
                 String name       = record.get("name");
@@ -85,7 +84,7 @@ public class CsvDataLoader implements CommandLineRunner {
 
                 Role role = Role.valueOf(roleStr.toUpperCase());
 
-                // 정적 팩토리 메서드
+                // User.create(...) 사용
                 User user = User.create(name, loginEmail, userEmail, role);
                 userList.add(user);
             }
@@ -98,7 +97,7 @@ public class CsvDataLoader implements CommandLineRunner {
     }
 
     /**
-     * [user_health_info.csv] -> UserHealth
+     * [user_health.csv] -> UserHealth
      * CSV Header (예시):
      * health_id, user_id, age, gender, height, weight, bmi,
      * bloodPressureLevel, bloodSugarLevel, surgeryCount,
@@ -114,53 +113,47 @@ public class CsvDataLoader implements CommandLineRunner {
             for (CSVRecord record : csvParser) {
                 // 1) user_id로 User 찾기
                 Long userId = Long.valueOf(record.get("user_id"));
-                User user = userRepo.findById(userId)
-                        .orElse(null);
+                User user = userRepo.findById(userId).orElse(null);
                 if (user == null) {
-                    // user가 없으면 스킵하거나, throw
                     System.out.println("User not found for user_id=" + userId + ", 스킵");
                     continue;
                 }
 
-                UserHealth info = new UserHealth();
-                info.setUser(user);
-
-                // 2) 나머지 필드들
-                info.setAge(Integer.valueOf(record.get("age")));
-                info.setGender(record.get("gender")); // "M"/"F"
-                info.setHeight(Integer.valueOf(record.get("height")));
-                info.setWeight(Integer.valueOf(record.get("weight")));
-                // BMI는 DB에 그대로 저장한다고 가정 (CSV에서 읽음)
-                info.setBmi(Float.valueOf(record.get("bmi")));
-
-                info.setBloodPressureLevel(Integer.valueOf(record.get("bloodPressureLevel")));
-                info.setBloodSugarLevel(Integer.valueOf(record.get("bloodSugarLevel")));
-                info.setSurgeryCount(Integer.valueOf(record.get("surgeryCount")));
-
-                info.setIsSmoker(Boolean.valueOf(record.get("isSmoker")));
-                info.setIsDrinker(Boolean.valueOf(record.get("isDrinker")));
-                info.setChronicDiseaseList(record.get("chronicDiseaseList")); // "고혈압,당뇨"
-
-                // jobType: Enum
+                // jobType 변환 로직 (CSV -> Enum)
                 String jobTypeStr = record.get("jobType"); // e.g. "OFFICE"
-                // 변환 로직
                 if ("SELFEMP".equalsIgnoreCase(jobTypeStr)) {
                     jobTypeStr = "SELF_EMPLOYED";
                 } else if ("HOMEMAKER".equalsIgnoreCase(jobTypeStr)) {
                     jobTypeStr = "HOUSEWIFE";
                 }
-                info.setJobType(JobType.valueOf(jobTypeStr.toUpperCase()));
+                JobType jobType = JobType.valueOf(jobTypeStr.toUpperCase());
 
-                info.setHasChildren(Boolean.valueOf(record.get("hasChildren")));
-                info.setHasOwnHouse(Boolean.valueOf(record.get("hasOwnHouse")));
-                info.setHasPet(Boolean.valueOf(record.get("hasPet")));
-                info.setHasFamilyHistory(Boolean.valueOf(record.get("hasFamilyHistory")));
+                // Float bmiVal = Float.valueOf(record.get("bmi"));
+                // ... CSV에서 값들을 파싱
+                UserHealth info = UserHealth.create(
+                        user,
+                        Integer.valueOf(record.get("age")),
+                        record.get("gender"),
+                        Integer.valueOf(record.get("height")),
+                        Integer.valueOf(record.get("weight")),
+                        Integer.valueOf(record.get("bloodPressureLevel")),
+                        Integer.valueOf(record.get("bloodSugarLevel")),
+                        Integer.valueOf(record.get("surgeryCount")),
+                        Boolean.valueOf(record.get("isSmoker")),
+                        Boolean.valueOf(record.get("isDrinker")),
+                        record.get("chronicDiseaseList"),
+                        jobType,
+                        Boolean.valueOf(record.get("hasChildren")),
+                        Boolean.valueOf(record.get("hasOwnHouse")),
+                        Boolean.valueOf(record.get("hasPet")),
+                        Boolean.valueOf(record.get("hasFamilyHistory"))
+                );
 
                 list.add(info);
             }
 
             userHealthRepo.saveAll(list);
-            System.out.println("[CsvDataLoader] user_health_info.csv -> " + list.size() + "건 insert 완료");
+            System.out.println("[CsvDataLoader] user_health.csv -> " + list.size() + "건 insert 완료");
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -179,18 +172,23 @@ public class CsvDataLoader implements CommandLineRunner {
         ) {
             List<InsuranceProduct> productList = new ArrayList<>();
             for (CSVRecord record : csvParser) {
-                InsuranceProduct product = new InsuranceProduct();
-                // productId auto_increment → 굳이 set 안함
-
-                product.setCompanyName(record.get("company_name"));
-                product.setProductName(record.get("product_name"));
+                String companyName     = record.get("company_name");
+                String productName     = record.get("product_name");
+                String typeStr         = record.get("product_type");
+                String coverageDetails = record.get("coverage_details");
+                int monthlyPremium     = Integer.parseInt(record.get("monthly_premium"));
 
                 // Enum 변환
-                String typeStr = record.get("product_type"); // e.g. "CANCER"
-                product.setProductCategory(InsuranceType.valueOf(typeStr.toUpperCase()));
+                InsuranceType category = InsuranceType.valueOf(typeStr.toUpperCase());
 
-                product.setCoverageDetails(record.get("coverage_details"));
-                product.setMonthlyPremium(Integer.parseInt(record.get("monthly_premium")));
+                // 정적 팩토리 메서드 사용
+                InsuranceProduct product = InsuranceProduct.create(
+                        companyName,
+                        productName,
+                        category,
+                        coverageDetails,
+                        monthlyPremium
+                );
 
                 productList.add(product);
             }
