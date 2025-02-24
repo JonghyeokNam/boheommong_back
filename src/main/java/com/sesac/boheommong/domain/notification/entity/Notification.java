@@ -24,7 +24,7 @@ public class Notification extends BaseEntity {
     @Column(name = "notification_id")
     private Long notificationId;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User receiver;
 
@@ -36,15 +36,16 @@ public class Notification extends BaseEntity {
 
     private boolean checked;
 
+    private String url;
+
     @Builder
-    public Notification(User receiver, NotificationType notificationType, String content) {
+    public Notification(User receiver, NotificationType notificationType, String content, String url) {
         this.receiver = receiver;
         this.notificationType = notificationType;
         this.content = content;
         this.checked = false;
+        this.url = url;
     }
 
     public void isRead() { checked = true; }
-
-    // public void delete() { this.getIsDeleted(); }
 }
