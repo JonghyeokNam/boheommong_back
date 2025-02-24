@@ -1,18 +1,20 @@
 package com.sesac.boheommong.domain.userhealth.dto.request;
 
 public record UserHealthRequest(
-        Long userId,          // 어떤 유저의 건강정보인지
-        String userName,
+        Long userId,
         Integer age,
-        String gender,
-        Float height,
-        Float weight,
-        Float bmi,
-        Integer isSmoker,
-        Integer isDrinker,
-        Integer hasChronicDisease,
-        String chronicDiseaseList,
-        String surgeryHistory,
-        String bloodPressure,
-        String bloodSugar
+        String gender,            // "M", "F"
+        Integer height,           // cm
+        Integer weight,           // kg
+        Integer bloodPressureLevel,  // 1~5
+        Integer bloodSugarLevel,     // 1~5
+        Integer surgeryCount,        // 0~5
+        Boolean isSmoker,
+        Boolean isDrinker,
+        String chronicDiseaseList,   // "고혈압,당뇨"
+        String jobType,              // "OFFICE", "DELIVERY", etc.
+        Boolean hasChildren,
+        Boolean hasOwnHouse,
+        Boolean hasPet,
+        Boolean hasFamilyHistory
 ) {}
