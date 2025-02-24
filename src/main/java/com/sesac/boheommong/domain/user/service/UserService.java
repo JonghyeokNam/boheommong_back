@@ -1,7 +1,7 @@
 package com.sesac.boheommong.domain.user.service;
 
 import com.sesac.boheommong.domain.user.entity.User;
-import com.sesac.boheommong.domain.user.dto.request.UserInfoRequestDto;
+import com.sesac.boheommong.domain.user.dto.request.UserRequestDto;
 import com.sesac.boheommong.domain.user.dto.response.UserResponseDto;
 
 public interface UserService {
@@ -21,7 +21,7 @@ public interface UserService {
      * @param userInfoRequestDto : 새로 갱신할 정보
      * @return 수정된 사용자 정보를 UserResponseDto로 반환
      */
-    UserResponseDto updateUser(String loginEmail, UserInfoRequestDto userInfoRequestDto);
+    UserResponseDto updateUser(String loginEmail, UserRequestDto userInfoRequestDto);
 
     /**
      * 신규 유저인지 여부 반환
