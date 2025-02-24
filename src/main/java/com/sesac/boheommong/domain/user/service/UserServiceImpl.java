@@ -4,6 +4,8 @@ import com.sesac.boheommong.domain.user.dto.request.UserInfoRequestDto;
 import com.sesac.boheommong.domain.user.dto.response.UserResponseDto;
 import com.sesac.boheommong.domain.user.entity.User;
 import com.sesac.boheommong.domain.user.repository.UserRepository;
+import com.sesac.boheommong.global.exception.BaseException;
+import com.sesac.boheommong.global.exception.error.ErrorCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,15 +38,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserByUserIdOrElseThrow(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> BaseException.from(ErrorCode.USER_NOT_FOUND));
     }
 
     @Override
     public User getUserByLoginEmailOrElseThrow(String loginEmail) {
         return userRepository.findByLoginEmail(loginEmail)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> BaseException.from(ErrorCode.USER_NOT_FOUND));
     }
 
+    // 신규 유저 구분
     @Override
     public Boolean getCheckNewUser(String loginEmail) {
         User user = getUserByLoginEmailOrElseThrow(loginEmail);

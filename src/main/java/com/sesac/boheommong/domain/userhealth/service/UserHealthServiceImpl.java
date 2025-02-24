@@ -6,6 +6,8 @@ import com.sesac.boheommong.domain.userhealth.dto.request.UserHealthRequest;
 import com.sesac.boheommong.domain.userhealth.entity.UserHealth;
 import com.sesac.boheommong.domain.userhealth.enums.JobType;
 import com.sesac.boheommong.domain.userhealth.repository.UserHealthRepository;
+import com.sesac.boheommong.global.exception.BaseException;
+import com.sesac.boheommong.global.exception.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,20 +27,19 @@ public class UserHealthServiceImpl implements UserHealthService {
     @Transactional
     @Override
     public UserHealth createHealth(UserHealthRequest req) {
-        // 1) userId -> User
+        // 1) userId -> User (develop 방식 예외 처리)
         User user = userRepository.findById(req.userId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> BaseException.from(ErrorCode.USER_NOT_FOUND));
 
-        // 2) 이미 HealthInfo가 존재하는지 확인(1:1)
+        // 2) 이미 HealthInfo가 존재하는지 확인 (feature 방식 예외 처리)
         userHealthRepository.findByUser(user).ifPresent(h -> {
             throw new IllegalStateException("Health info already exists for this user.");
         });
 
-        // 3) jobType 문자열 -> Enum
+        // 3) jobType 문자열 -> Enum (jobType 변환 유지)
         JobType jobType = JobType.valueOf(req.jobType());
 
-        // 4) 엔티티 생성
-        //    인자 순서/개수는 UserHealth.create(...)와 완전히 동일해야 함
+        // 4) 엔티티 생성 (변수명 health 유지)
         UserHealth health = UserHealth.create(
                 user,
                 req.age(),
@@ -68,11 +69,11 @@ public class UserHealthServiceImpl implements UserHealthService {
     @Transactional
     @Override
     public UserHealth updateHealth(UserHealthRequest req) {
-        // 1) userId -> User
+        // 1) userId -> User (develop 방식 예외 처리)
         User user = userRepository.findById(req.userId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> BaseException.from(ErrorCode.USER_NOT_FOUND));
 
-        // 2) 해당 user로 HealthInfo 조회
+        // 2) 해당 user로 HealthInfo 조회 (feature 방식 예외 처리)
         UserHealth health = userHealthRepository.findByUser(user)
                 .orElseThrow(() -> new IllegalStateException("Health info not found"));
 
@@ -107,8 +108,9 @@ public class UserHealthServiceImpl implements UserHealthService {
     @Transactional(readOnly = true)
     @Override
     public Optional<UserHealth> findHealthByUserId(Long userId) {
+        // develop 방식 예외 처리
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> BaseException.from(ErrorCode.USER_NOT_FOUND));
         return userHealthRepository.findByUser(user);
     }
 }
