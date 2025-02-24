@@ -4,6 +4,7 @@ import com.sesac.boheommong.domain.user.entity.User;
 import com.sesac.boheommong.domain.user.repository.UserRepository;
 import com.sesac.boheommong.domain.userhealth.dto.request.UserHealthRequest;
 import com.sesac.boheommong.domain.userhealth.entity.UserHealth;
+import com.sesac.boheommong.domain.userhealth.enums.JobType;
 import com.sesac.boheommong.domain.userhealth.repository.UserHealthRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,37 +25,41 @@ public class UserHealthServiceImpl implements UserHealthService {
     @Transactional
     @Override
     public UserHealth createHealth(UserHealthRequest req) {
-        // 1) userId로 User 찾기
+        // 1) userId -> User
         User user = userRepository.findById(req.userId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // 2) 이미 HealthInfo가 있는지 검사 (1:1 관계)
-        userHealthRepository.findByUser(user)
-                .ifPresent(info -> {
-                    // 이미 존재하면 예외
-                    throw new IllegalStateException("Health info already exists for this user.");
-                });
+        // 2) 이미 HealthInfo가 존재하는지 확인(1:1)
+        userHealthRepository.findByUser(user).ifPresent(h -> {
+            throw new IllegalStateException("Health info already exists for this user.");
+        });
 
-        // 3) 엔티티 생성
-        UserHealth info = UserHealth.create(
+        // 3) jobType 문자열 -> Enum
+        JobType jobType = JobType.valueOf(req.jobType());
+
+        // 4) 엔티티 생성
+        //    인자 순서/개수는 UserHealth.create(...)와 완전히 동일해야 함
+        UserHealth health = UserHealth.create(
                 user,
-                req.userName(),
                 req.age(),
                 req.gender(),
                 req.height(),
                 req.weight(),
-                req.bmi(),
+                req.bloodPressureLevel(),
+                req.bloodSugarLevel(),
+                req.surgeryCount(),
                 req.isSmoker(),
                 req.isDrinker(),
-                req.hasChronicDisease(),
                 req.chronicDiseaseList(),
-                req.surgeryHistory(),
-                req.bloodPressure(),
-                req.bloodSugar()
+                jobType,
+                req.hasChildren(),
+                req.hasOwnHouse(),
+                req.hasPet(),
+                req.hasFamilyHistory()
         );
 
-        // 4) 저장
-        return userHealthRepository.save(info);
+        // 5) 저장
+        return userHealthRepository.save(health);
     }
 
     /**
@@ -63,32 +68,37 @@ public class UserHealthServiceImpl implements UserHealthService {
     @Transactional
     @Override
     public UserHealth updateHealth(UserHealthRequest req) {
-        // 1) userId로 User 찾기
+        // 1) userId -> User
         User user = userRepository.findById(req.userId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         // 2) 해당 user로 HealthInfo 조회
-        UserHealth info = userHealthRepository.findByUser(user)
+        UserHealth health = userHealthRepository.findByUser(user)
                 .orElseThrow(() -> new IllegalStateException("Health info not found"));
 
-        // 3) 업데이트
-        info.updateHealth(
-                req.userName(),
+        // 3) jobType 변환
+        JobType jobType = JobType.valueOf(req.jobType());
+
+        // 4) 업데이트
+        health.updateHealth(
                 req.age(),
                 req.gender(),
                 req.height(),
                 req.weight(),
-                req.bmi(),
+                req.bloodPressureLevel(),
+                req.bloodSugarLevel(),
+                req.surgeryCount(),
                 req.isSmoker(),
                 req.isDrinker(),
-                req.hasChronicDisease(),
                 req.chronicDiseaseList(),
-                req.surgeryHistory(),
-                req.bloodPressure(),
-                req.bloodSugar()
+                jobType,
+                req.hasChildren(),
+                req.hasOwnHouse(),
+                req.hasPet(),
+                req.hasFamilyHistory()
         );
 
-        return info; // 필요 시 DTO로 변환
+        return health;
     }
 
     /**
