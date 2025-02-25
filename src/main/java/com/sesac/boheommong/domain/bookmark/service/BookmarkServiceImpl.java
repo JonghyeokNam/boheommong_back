@@ -29,7 +29,7 @@ public class BookmarkServiceImpl implements BookmarkService {
         User user = userRepository.findByLoginEmail(loginEmail)
                 .orElseThrow(() -> new RuntimeException("유저가 존재하지 않습니다."));
 
-        InsuranceProduct product = insuranceProductRepository.findInsuranceProductByProductId(productId)
+        InsuranceProduct product = insuranceProductRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("상품이 존재하지 않습니다."));
 
         return bookmarkRepository.findByUserAndProduct(user, product).isPresent();
@@ -64,7 +64,7 @@ public class BookmarkServiceImpl implements BookmarkService {
         User user = userRepository.findById(requestDto.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다. userId=" + requestDto.getUserId()));
 
-        InsuranceProduct product = insuranceProductRepository.findInsuranceProductByProductId(requestDto.getProductId())
+        InsuranceProduct product = insuranceProductRepository.findById(requestDto.getProductId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 보험 상품이 존재하지 않습니다. productId=" + requestDto.getProductId()));
 
         Bookmark bookmark = Bookmark.create(user, product);
