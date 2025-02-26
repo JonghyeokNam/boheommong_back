@@ -35,6 +35,12 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(name = "totp_enabled")
+    private boolean totpEnabled = true; // 기본 true
+
+    @Column(name = "totp_secret")
+    private String totpSecret; // null이면 아직 TOTP 등록 전
+
     // private 생성자
     private User(String name, String loginEmail, String userEmail, Role role) {
         this.name = name;
@@ -51,5 +57,14 @@ public class User extends BaseEntity {
     // 필요한 update 메서드가 있다면 추가
     public void updateInfo(String newEmail) {
         this.userEmail = newEmail;
+    }
+
+    public void setTotpSecret(String secret) {
+        this.totpSecret = secret;
+    }
+
+    public void disableTotp() {
+        this.totpEnabled = false;
+        this.totpSecret = null;
     }
 }
