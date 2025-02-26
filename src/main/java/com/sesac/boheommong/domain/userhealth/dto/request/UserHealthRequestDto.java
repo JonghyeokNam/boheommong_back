@@ -2,6 +2,8 @@ package com.sesac.boheommong.domain.userhealth.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.List;
+
 /**
  * 사용자 건강정보 등록/수정 시 사용하는 요청 DTO
  */
@@ -35,7 +37,7 @@ public record UserHealthRequestDto(
         Boolean isDrinker,
 
         @Schema(description = "만성질환 목록(콤마 구분)", example = "고혈압,당뇨")
-        String chronicDiseaseList,
+        List<String> chronicDiseaseList,
 
         @Schema(description = "직업(OFFICE/DELIVERY/CONSTRUCTION...)", example = "OFFICE")
         String jobType,
