@@ -20,11 +20,11 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public UserResponseDto updateUser(String loginEmail, UserRequestDto userInfoRequestDto) {
+    public UserResponseDto updateUser(String loginEmail, UserRequestDto userRequestDto) {
         // 유저 조회
         User user = getUserByLoginEmailOrElseThrow(loginEmail);
 
-        String userEmail = userInfoRequestDto.userEmail();
+        String userEmail = userRequestDto.userEmail();
 
         // 유저 정보 업데이트 (email 등)
         user.updateInfo(
