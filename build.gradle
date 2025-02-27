@@ -59,6 +59,9 @@ dependencies {
 	// 최신 버전 명시
 	implementation 'org.apache.httpcomponents:httpclient:4.5.14'
 
+	// redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
 }
 
 tasks.named('test') {
