@@ -1,6 +1,6 @@
 package com.sesac.boheommong.domain.user.controller;
 
-import com.sesac.boheommong.domain.user.dto.request.UserInfoRequestDto;
+import com.sesac.boheommong.domain.user.dto.request.UserRequestDto;
 import com.sesac.boheommong.domain.user.dto.response.UserResponseDto;
 import com.sesac.boheommong.domain.user.entity.User;
 import com.sesac.boheommong.domain.user.service.UserService;
@@ -47,8 +47,8 @@ public class UserController {
             ),
     })
     @PutMapping
-    public Response<UserResponseDto> saveInfo(HttpServletRequest request, @RequestBody UserInfoRequestDto userInfoRequestDto) {
-        return Response.success(userService.updateUser(tokenProvider.getUserLoginEmail(request), userInfoRequestDto));
+    public Response<UserResponseDto> saveInfo(HttpServletRequest request, @RequestBody UserRequestDto UserRequestDto) {
+        return Response.success(userService.updateUser(tokenProvider.getUserLoginEmail(request), UserRequestDto));
     }
 
     @Operation(

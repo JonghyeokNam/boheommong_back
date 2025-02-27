@@ -1,9 +1,9 @@
 import random
 import csv
-import os  # 파일 존재 여부 체크용
+import os
 
 #############################
-# 1) User 더미 데이터
+# 1) 사용자 더미 데이터 (users.csv)
 #############################
 
 roles = ["USER", "ADMIN"]
@@ -11,11 +11,16 @@ family_names = ["김", "이", "박", "최", "정", "강", "조", "윤", "장", "
 given_names = ["민수","영희","도윤","서연","지민","하윤","서현","지원","현우","유정","가영","상민","동혁","다은","민기","화경","정은","혜정"]
 
 def generate_users(num=500):
+    """
+    user_id (1..num)
+    loginEmail, userEmail
+    name, role
+    """
     data = []
     for user_id in range(1, num+1):
         f_name = random.choice(family_names)
         g_name = random.choice(given_names)
-        user_name = f_name + g_name  # 예: 김민수
+        user_name = f_name + g_name
 
         login_email = f"kakao_{random.randint(1000,9999)}@kakao.com"
         user_email  = f"user{random.randint(1000,9999)}@gmail.com"
@@ -37,22 +42,24 @@ def save_users_csv(users_data, filename="users.csv"):
         writer.writerow(headers)
         writer.writerows(users_data)
 
+
 #############################
-# 2) 보험상품 준비
+# 2) 보험상품 더미 (insurance_products.csv)
 #############################
 
+# 회사별 상품명 (카테고리 정보 없음)
 base_products = {
     "삼성화재": [
-        "삼성화재 뉴 암보험",
+        "삼성화재 뉴 암플랜",
         "삼성화재 건강보험 통합",
         "삼성화재 종신보험 스마트",
         "삼성화재 운전자패키지 Plus",
         "삼성화재 치아보험 웰라이프",
-        "삼성화재 The건강한 암케어",
+        "삼성화재 The건강한 플랜",
         "삼성화재 다이렉트 실손건강",
-        "삼성화재 행복한 암보장 플랜",
+        "삼성화재 행복한 보장 플랜",
         "삼성화재 수술입원 통합보장",
-        "삼성화재 무배당 내아이 건강보험",
+        "삼성화재 무배당 내아이 케어",
         "삼성화재 신생아 희망케어",
         "삼성화재 치매간병 안심플랜",
         "삼성화재 스마트 운전자케어",
@@ -180,361 +187,379 @@ base_products = {
     ]
 }
 
-# 회사별 상품 100개까지 확장
-for company, product_list in base_products.items():
-    cur_len = len(product_list)
-    if cur_len < 100:
-        for i in range(cur_len+1, 101):
-            product_list.append(f"{company} 추가상품{i}")
+# 만약 회사별 상품 수가 15개 미만이면, 100개까지 임의 생성
+for company, products_list in base_products.items():
+    if len(products_list) < 100:
+        start_len = len(products_list)+1
+        for i in range(start_len, 101):
+            products_list.append(f"{company} 추가상품{i}")
 
-# 최종 회사-상품 딕셔너리
-possible_products_final = base_products
 
 #############################
-# 2. 카테고리별 보장 문구 (50개)
+# 2-1) 카테고리(Enum)별 보장내용 map
 #############################
 
 base_coverage_details = {
-    "암": [
-        "주요암(유방암, 폐암, 대장암) 진단 시 고액 보장. 항암주사비, 방사선치료 특약 가능.",
-        "초기암부터 재진단암까지 단계별 보장. 항암치료 후 관리 서비스 제공.",
-        "갑상선암, 전립선암 등 소액암도 일시금 지원. 합병증 치료비까지 커버.",
-        "표적항암약물 치료비, 면역치료 지원 특약. 고액치료비 한도 상향 옵션.",
-        "뇌암, 백혈병, 골수암 등 희귀암 특화 보장. 진단 즉시 생활자금 지급.",
-        "재진단암 2~3차까지 보장 확대. 수술·입원·통원까지 전담 케어팀 연계.",
-        "수술 전후 자가치료비, 간병비 지원. 말기암 간병특약 별도 선택 가능.",
-        "항암방사선 후유장해 집중 케어. 호스피스 비용까지 부분 지원.",
-        "유전성 암 위험도 검사 할인 혜택. 암 예방 프로그램 연계.",
-        "자궁암, 난소암 등 여성암 전용 보장. 임신·출산 후 발생암 확대.",
-        "남성암(전립선, 고환암) 특화 담보. 암 이외 중증질환 추가 선택 가능.",
-        "가족력 있는 경우 보험료 할인 혜택. 장기 납입 시 해지환급금 보장.",
-        "암 1~4기 구분 없이 동일 진단금 지급. 중대수술 시 2배 보상.",
-        "항암치료 장기입원비, 호스피스 병동 지원. 전문 간병인 매칭 특약.",
-        "초음파·CT·MRI 등 검사비 보장 강화. 2차 진단시 재보상 옵션.",
-        "약관상 위암, 식도암, 소장암까지 포함. 소화기암 특화 보장 가능.",
-        "암 사망 시 유족연금 지급형 특약. 상속세 절감 플랜 별도 운영.",
-        "정기검진 결과 고위험군이면 보험료 할인. 건강관리 앱 연동 혜택.",
-        "항암치료 이동 교통비, 숙박비 일부 지원. 암 환자 생활지원금 특약.",
-        "암진단 후 5년 무사고 시 보험료 환급. 동반질환(당뇨, 고혈압) 병행 보장."
+    "CANCER": [
+        "주요암(유방암, 폐암) 보장. 항암주사비 지원.",
+        "유전성 암 스크리닝 할인, 가족력시 보험료 감면.",
+        "재진단암(2차) 보장, 항암약물치료비 일부.",
+        "말기암 간병특약, 호스피스 비용 지원.",
+        "초기암부터 고액암까지 단계별 혜택.",
+        "암 사망 시 유족연금 지급형 가능.",
+        "표적항암약물, 면역치료 보장 확대.",
+        "소액암, 갑상선암 전립선암 특화담보.",
+        "5년 무사고 보험료 환급 옵션.",
+        "정기검진 결과 고위험군 할인이벤트."
     ],
-    "수술/입원비": [
-        "질병·상해 수술비부터 입원비까지 포괄 보장. 중환자실 특약 가능.",
-        "대학병원/상급병실 입원 차액 지원. 간호인력 비용 일부 포함.",
-        "복강경, 로봇수술 등 첨단수술비 추가. 고액수술 한도 상향.",
-        "혈관질환, 장기이식 등 중대수술 보장 강화. 재활치료비 별도 특약.",
-        "입원 1일당 정액 지원 + 수술비 별도. 병실 업그레이드 옵션.",
-        "응급실 내원비, 중환자실 초기비용 보상. 외상성 상해 처리비 포함.",
-        "무사고 시 수술비 환급 옵션. 납입면제 조건 확대.",
-        "수술회복 단계별 간호비 지원. 통원치료 시 교통비 일부 보상.",
-        "각종 내시경 수술, 레이저수술 보장. 전문센터 이용 시 할인 혜택.",
-        "골절, 인공관절 치환, 디스크 수술 포함. 재수술 시 추가 보장.",
-        "수술 후 재활물리치료, 도수치료 특약. 2차 감염 치료비 보상.",
-        "특정질환(암·뇌·심장) 수술비 중복보장. 다회성 수술시 횟수 무제한.",
-        "응급수술 시 긴급이송 헬기비용 보전. 동승 보호자 식대비 특약.",
-        "로봇수술 기술료, 마취과 전문의 수가차액 커버. 진료비 추가 부담 감소.",
-        "수술 후 자택 간호 서비스 일정기간 제공. 간병인 쿠폰 특약.",
-        "펫동반 입원실 사용시 일부 차액 지원. 이색 특약.",
-        "심장수술·뇌수술 시 재활간병 집중케어. 고액수술 특약으로 2배 보상.",
-        "미용 목적 제외, 치유 목적 성형수술은 일부 제한적 보장. 재건술은 심사 후.",
-        "1일 이상 입원 시 입원일당×(수술 난이도계수) 형태로 차등 보상.",
-        "치과수술(악교정 등) 보장되는 플랜 확장. 치과전문의 협진비 포함."
+    "SURGERY": [
+        "수술비·입원비 포괄 보장. 로봇수술 특약.",
+        "복강경, 관절, 디스크 등 정형외과 수술 강화.",
+        "응급수술 시 헬기이송, 보호자 식대비 지원.",
+        "수술 후 재활치료, 도수치료 담보.",
+        "무사고 시 수술비 환급 옵션.",
+        "특정질환(암·뇌·심장) 수술 2배 지급.",
+        "심장수술·뇌수술 고액 특약 별도.",
+        "치과수술(악교정, 임플란트) 일부 커버.",
+        "미용 목적 성형 제외, 재건술은 일부 조건.",
+        "입원일당×(수술난이도계수)로 차등 보상."
     ],
-    "종신": [
-        "사망 시 유족보험금 평생 지급. 중도 해지 시 환급률 높음.",
-        "정액사망보장 + 뇌·심장질환 특약. 변액 종신으로 투자수익 연동.",
-        "유가족 연금형 수령 가능. 저해지형 설계로 보험료 부담 완화.",
-        "치매, 말기질환 시 선지급특약. 상속 설계용으로 활용 가능.",
-        "재해사망, 상해사망 추가 담보. 노후 간병자금 옵션 병행.",
-        "생활자금선지급형: 중증질환 진단 시 사망보험금 일부 선지급.",
-        "납입기간 단축형 선택 가능(10년·15년). 해지환급금 극대화 플랜.",
-        "중대질병(암·뇌졸중) 사망 시 2배 보상. 배우자 전환특약.",
-        "단축형 변액 종신: 해지환급금 변동형. 투자수익률에 따라 보장 확대.",
-        "사후 상속지급 시 금융상속공제 혜택. 재테크용으로 인기.",
-        "배우자 연결 종신 옵션(세대간 상속). 자녀 양육비 연금화 가능.",
-        "계약대출(약관대출) 이율 인하 혜택. 가입 3년 후부터 대출 가능.",
-        "종신 + 연금 혼합 설계 가능. 노후 준비와 유족보장 병행.",
-        "MCI(경증치매) 진단 시 사망금 일부 선지급. 간병비로 사용 가능.",
-        "자녀가 2명 이상이면 가족특약 할인 혜택. 유가족 생활 안정화.",
-        "사망보험금 5억까지 고액 설정 가능. 기업체 대표용 플랜 지원.",
-        "고액자산가 특화: 상속세 대비용. 절세컨설팅 연계 제공.",
-        "월납, 연납, 일시납 등 납입방법 자유. 라이프스타일에 맞춤 설계.",
-        "암진단 후 1년 내 사망 시 추가 보상. 유족 심리지원 서비스.",
-        "정년도래형: 60세/65세 이후 보험료 납부 종료, 평생 보장."
+    "LIFE": [
+        "사망 시 유족보험금 평생 지급. 중도 해지환급 일부.",
+        "정액사망보장 + 뇌·심장질환 특약 가능.",
+        "납입기간 단축(10/15년), 고액 해지환급 설계.",
+        "배우자 연결 종신, 자녀 양육비 연금화 가능.",
+        "암·뇌졸중 사망 시 2배 보상 특약.",
+        "기업 오너용 상속세 대비 플랜 가능.",
+        "정년도래형: 60세 납 끝, 평생 보장.",
+        "생활자금선지급형: 중증질환 시 일부 지급.",
+        "MCI(경증치매) 선지급, 간병비로 활용.",
+        "변액 종신, 투자수익 연동 해지환급 가능."
     ],
-    "운전자/상해": [
-        "교통사고 처리지원금, 벌금, 변호사 비용, 면허취소 지원 등 종합보장.",
-        "상해 입원비, 후유장해 보장. 자전거·킥보드 등 개인이동수단 특약.",
-        "자동차 사고 외에 보행 중 상해도 보장. 생활배상책임 추가 가능.",
-        "음주운전 벌금 일부 제외 특약(도덕적 해이 방지). 안전운전 할인.",
-        "뺑소니·무보험차 상해 보장 강화. 긴급 견인 서비스 무제한.",
-        "면허정지, 취소 시 위로금 지급. 벌금 한도 3천만원까지 확대.",
-        "법률비용지원: 변호사 선임비, 합의금, 민사소송 비용까지 포함.",
-        "영업용 차량(택시, 버스) 운전자 위한 특화 담보. 산재 보완 기능.",
-        "골프카트, ATV, 전동휠 등 레저용 이동장치 상해 보장. 이색 특약.",
-        "가족 운전 중 사고 시 동일 보장. 부부 특약 할인 적용.",
-        "이륜차(오토바이) 상해까지 확장 가능. 배달 라이더 전용 설계.",
-        "출퇴근·업무 중 교통상해 보상 특별약정. 고위험 직군 할인 보완.",
-        "과속·신호위반 시 벌금, 형사합의금 일부 보장. 단, 반복 위반 시 예외.",
-        "임시 차량 대체 시에도 계속 보장. 렌터카, 공유차 서비스 포함.",
-        "면허 재취득 비용 지원 특약. 사고 후 심리상담 프로그램 연계.",
-        "현장출동 서비스(배터리, 타이어교체) 연 5회 무료. 재난시 추가 지원.",
-        "부상등급별 위로금 체계. 중상해 시 집중 간병비 옵션.",
-        "동승자 상해 보장. 가족이 탑승했을 경우 별도 배상 특약.",
-        "방어비용 특약(형사소송 대응). 블랙박스 설치 시 보험료 할인.",
-        "장기무사고 시 보험료 환급. 안전운전 습관 측정 앱 연동으로 추가 할인."
+    "DRIVER": [
+        "교통사고 처리지원금, 변호사비, 벌금 지원.",
+        "상해 입원비, 후유장해. 자전거·오토바이 특약.",
+        "음주운전 벌금 일부 제외(도덕적 해이 방지).",
+        "무보험차 상해, 긴급견인 무제한.",
+        "면허정지/취소 위로금, 벌금 한도 3천만원.",
+        "법률비용지원: 변호사 선임비, 합의금.",
+        "배달 라이더 전용, 이륜차 상해 확장.",
+        "가족 운전 중 사고시 동일 보장.",
+        "면허 재취득 비용 특약, 심리치료 연계.",
+        "장기무사고 환급, 블랙박스 설치 할인."
     ],
-    "주택화재": [
-        "화재, 폭발, 누출 피해 보장. 가재도구 손실 배상 확대.",
-        "자연재해(태풍, 홍수) 보장 범위 강화. 임시 거주비 최대 6개월 지원.",
-        "누수로 인한 이웃집 피해 배상. 위자료 및 도배 교체비 포함.",
-        "단독주택, 아파트, 오피스텔, 빌라 등 모든 주거형태 적용 가능.",
-        "도난·파손 특약 가능. 침입 시도 시 파손비용 일부 보상.",
-        "임차인 배상책임(전세, 월세) 별도 설정. 집주인·세입자 모두 안심.",
-        "보일러, 가스레인지, 수도 배관사고까지 보장 범위 확대.",
-        "바람, 우박, 낙뢰 등 풍해·우박·낙뢰 특약 가입 시 보수 비용 지원.",
-        "지진 발생 시 건물 균열, 붕괴 일부 커버. 지진담보 특약 한도 설정.",
-        "주택가스 폭발사고, 화상 치료비 추가 보장. 인명 피해 위로금 포함.",
-        "가전제품(에어컨, TV, 냉장고) 망실 시 실비 배상. 노후 제품은 감가.",
-        "반려동물 동반 대피 시 임시보호소 비용 특약. 파견 간병인 쿠폰 제공.",
-        "고층건물(30층 이상) 화재시 고가사다리차 이용비 부담 일부 보전.",
-        "노후주택(건축 30년 이상) 특별심사 후 가입 가능. 일부 추가 할증.",
-        "불법 증축 부분 사고도 일정부분 배상 처리(단, 심사 필요).",
-        "소방법 준수 건물(스프링클러, 화재경보기 설치) 시 할인.",
-        "주택 내 지진계측기 설치 시 추가 할인. 재난지원금 연계.",
-        "주거+창고 복합건물도 통합 보장 가능. 단, 사업용 부분 제외.",
-        "공동주택 층간소음 갈등으로 인한 기물파손도 일부 배상.",
-        "무사고 3년 시 프리미엄 환급. 장기유지 보너스 프로그램."
+    "FIRE": [
+        "화재, 폭발, 누출 피해. 가재도구 망실까지 보장.",
+        "자연재해(태풍, 홍수) 임시거주비 6개월.",
+        "임차인 배상책임 별도. 전세·월세 모두 안심.",
+        "화상 치료비, 인명 피해 위로금 커버.",
+        "보일러, 수도 파열사고 확대. 도난 특약 가능.",
+        "고층건물 화재시 고가사다리차 비용 일부.",
+        "노후주택(건축30년↑) 특별심사, 일부 할증.",
+        "반려동물 대피 시 임시보호소 비용.",
+        "지진담보 특약, 건물 균열·붕괴 대비.",
+        "무사고3년 환급, 장기유지 보너스."
     ],
-    "치아": [
-        "스케일링, 충치, 신경치료 보장. 임플란트 특약 최대 2개.",
-        "치아보철(크라운, 브릿지) 교정치료 일부 지원. 어린이 교정은 별도 옵션.",
-        "치과 응급치료, 잇몸치료비 커버. 미백치료는 제외.",
-        "임플란트 재료 상향 시 추가 지원. 세라믹, 지르코니아 등 고가재료 부담 경감.",
-        "치아파절, 발치, 근관치료(신경치료) 단계별 정액 지급. 2차 재치료 보장.",
-        "어금니, 송곳니 등 보철치료 집중 보장. 골이식술 일부 비용 지원.",
-        "치주질환(잇몸 염증, 치조골 손실) 치료비 확대. 정기검진 할인 연계.",
-        "부분틀니, 전체틀니 보장. 유지·관리 비용 연 1회 추가.",
-        "스케일링 연 2회 커버형 특약. 치과의사협회 등록병원 이용 시 혜택.",
-        "유아·어린이 충치치료, 실란트 시술비 등 50~80% 보장.",
-        "치과 전용 응급실 이용 시 야간·공휴일 할증 비용 보상. 외상치아 특약.",
-        "브라켓 교정, 인비절라인 등 투명교정 일부 지원(사유 심사 후).",
-        "임신 중 치아건강 특별관리비용. 산모 치주질환 치료비 부담 낮춤.",
-        "치아염증 재발 시 2차 치료 비용 추가. 6개월 이내 재치료 보완.",
-        "보철 파손 시 재제작 비용 커버. 지진·사고 등 외부 요인도 포함.",
-        "온레이, 인레이 보장 범위 상향. 금 인레이와 레진 비용 차액 지원.",
-        "충치 3개 이상 동시 치료 시 패키지 지원금(일부 한도 내).",
-        "의치, 덧니 보정 비용 별도 담보. 심미성 교정 제외 시 보험료 할인.",
-        "치과 검진 앱 연동 시 교정 전후 관리 서비스. 영양상담 쿠폰 제공.",
-        "임플란트 후 통증관리 약제비, 소염진통제 비용 일부 지원."
+    "DENTAL": [
+        "스케일링, 충치, 신경치료 보장. 임플란트 특약.",
+        "치아보철, 교정 일부 지원. 어린이 교정은 별도.",
+        "치주질환, 발치, 근관치료 단계별 정액.",
+        "어금니, 브릿지, 골이식술 일부 비용.",
+        "스케일링 연2회, 협회 등록병원 할인.",
+        "유아·어린이 충치치료, 실란트 시술 보장.",
+        "임신 중 치아건강 특별관리, 산모 치주질환.",
+        "치아염증 재발 시 2차 치료비 커버.",
+        "보철 파손 재제작 비용 커버. 지진·사고 등.",
+        "임플란트 후 통증관리 약제비 일부."
     ],
-    "치매": [
-        "경도치매부터 중증치매까지 단계별 진단비, 간병비 보장. 장기요양등급별 확대.",
-        "치매 간병인 24시간 파견 특약. 1회 최대 30일 지원.",
-        "알츠하이머, 혈관성 치매 집중보장. 중증도별 월 생활비 지급.",
-        "부부 동시 치매 발생 시 가족케어자금 2배. 배우자 케어 특약 포함.",
-        "MCI(경도인지장애) 단계부터 조기치료비 지원. 예방프로그램 할인.",
-        "치매 전담 요양원 입소 시 시설비 일부 커버. 재활치료비 보완.",
-        "장기요양 1~5등급에 따라 매월 간병비 차등 지급. 최대 36개월 보장.",
-        "치매 진단 시 보험료 납입면제. 보호자 심리지원 서비스.",
-        "치매환자 실종보험금(배회감지기) 지원. 위치추적기 구입비 일부 부담.",
-        "간병 보호자 교대휴가비, 심리상담비 등 추가 담보. 국가 지원 연계.",
-        "인지재활치료(작업요법, 언어치료) 비용 특약. 전문센터 이용 시 할인.",
-        "치매약제비(도네페질 등) 월 정액 지원. 비급여 부분 보완.",
-        "가족 중 치매 이력 있으면 가입 시 할인(유전자 스크리닝 동의 시).",
-        "중증치매로 장기입원 시 간병병실 차액 지원. 간호인 인력비 포함.",
-        "재진단 시 중도 보장금 선지급. 환자 이송비(이동차량) 커버.",
-        "치매 환자용 안전용품(낙상 방지 매트, 안전바) 구매비 일부 지원.",
-        "집에서 돌보는 재가간병 형태 시 생활비 지원. 방문요양 쿠폰.",
-        "치매 사망 시 추가 위로금, 유족연금형 지급 특약. 상속세 대비 옵션.",
-        "양로시설, 실버타운 거주 시 보증금 손해 지원. 시설 파산 위험 대비.",
-        "치매 환자 돌봄 가족에 대한 심리상담, 휴식캠프 특별혜택 연 1회."
+    "DEMENTIA": [
+        "경도치매~중증치매 단계별 간병비. 장기요양등급별 확대.",
+        "치매 간병인 24시간 특약. 배우자 동시 발생 시 2배.",
+        "알츠하이머, 혈관성 치매 집중 담보.",
+        "치매 진단 시 보험료 납입면제. 보호자 심리상담.",
+        "가족 중 치매 이력 있으면 가입 할인.",
+        "중증치매 간병병실 차액 지원. 호스피스 비용.",
+        "인지재활치료(작업·언어) 비용 특약.",
+        "치매 환자 실종보험금, 배회감지기 지원.",
+        "장기요양1~5등급 월 간병비, 최대36개월.",
+        "치매 사망 시 위로금, 유족연금형 선택 가능."
     ],
-    "신생아": [
-        "출생 직후부터 미숙아, 선천질환 보장. 인큐베이터 입원비 지원.",
-        "중환자실, 인큐베이터 비용 특약. 예방접종비 50% 할인 혜택.",
-        "산모 위험담보, 제왕절개 수술비 일부 보장. 어린이보험 전환 가능.",
-        "저체중아(2.5kg 미만) 집중케어. 수술비, 재활치료비 별도 한도.",
-        "선천성 심장질환, 구개열, 대사이상질환 등 희귀질환 보장 확대.",
-        "산모-신생아 동시 입원 시 병실차액 지원. 간병인 7일 제공 특약.",
-        "태아 때 초음파 검사비 일부 환급. 가입 시 산전검사 쿠폰 제공.",
-        "신생아 황달, 호흡곤란 증후군 등 NICU 치료비 집중 보장.",
-        "예방접종 완료 시 보험료 일부 환급. 돌 이전 5회 접종비 할인.",
-        "산후조리원 이용비용 특약. 일부 지정기관 할인 연계.",
-        "배꼽탈장, 잠복고환 등 경미한 선천질환도 일정금액 보장.",
-        "엄마와 아이 함께 통합보장 가능. 출산합병증, 난산 위험 담보.",
-        "미숙아 퇴원 후 재활치료, 언어치료 담보 가능. 성장발달 지원.",
-        "1세 이전 어린이 상해·화상·골절 보장. 응급실 내원비 포함.",
-        "산후 우울증 치료비 특약(산모), 신생아 양육코칭 무료 지원.",
-        "쌍둥이 출산 시 추가 할인 특약. 다태아 전문 간호사 파견.",
-        "아토피, 알레르기성 비염 초기치료비 보강. 소아청소년과 진료비 연계.",
-        "소아치과 초기진료(치아 우식 예방) 1회 무료 혜택. 이유식 지원 쿠폰.",
-        "영유아 건강검진 비용 전액 지원(정부 지원 외 추가). 부모 교육 세미나 쿠폰.",
-        "아이 성장단계별(6개월, 1세, 2세) 건강검진 확대. 돌봄 서비스 연계."
+    "NEWBORN": [
+        "출생 직후 미숙아·선천질환 보장, 인큐베이터 입원비.",
+        "산모 위험담보, 제왕절개 수술비 등.",
+        "저체중아 집중케어, 희귀질환 확대 담보.",
+        "1세 이전 상해·화상·골절 보장, 응급실 포함.",
+        "쌍둥이 출산 시 추가 할인 특약.",
+        "아토피, 알레르기성 비염 초기치료.",
+        "영유아 검진 비용 전액 지원(정부 외 추가).",
+        "신생아 황달, 호흡곤란증후군 집중보장.",
+        "산후조리원 이용비, 일부 지정기관 할인.",
+        "태아 때 초음파 검사비 환급, 산전검사 쿠폰."
+    ],
+    "HEALTHCARE": [
+        "표준 실손의료비, 급여·비급여 통원/입원 보장.",
+        "본인부담금(약국·처방조제료, MRI 등) 지원.",
+        "도수치료, 증식치료 등 비급여 일부 커버.",
+        "상급병실 차액, 특진료 일부 담보.",
+        "연간 보장한도 내 무제한 청구 가능.",
+        "중증질환 고액치료비 한도 확대.",
+        "미용 목적 시술 제외, 치료목적 성형은 일부.",
+        "대학병원 1인실 차액 정액지원.",
+        "약국 본인부담금, 처방조제료 연간 n회 제한.",
+        "4세대 실손구조, 과다 이용 시 할증."
+    ],
+    "CHILD": [
+        "어린이(0~15세) 질병·상해 종합보험. 골절, 화상 등.",
+        "소아암(백혈병, 뇌종양) 특화담보. 재진단도 일부 보장.",
+        "어린이 치아치료, 실란트 시술 50%이상 보장.",
+        "학교·학원 사고, 통원치료비, 응급실 비용.",
+        "정신건강상담 특약(ADHD, 틱장애).",
+        "만기 후 성인용 전환 가능, 저해지 설계.",
+        "피부질환(아토피), 알레르기성 비염도 보강.",
+        "입원 간병인 쿠폰, 부모 동반 간이침대비.",
+        "어린이 뇌전증 등 희귀질환 지원.",
+        "영양상담·성장검진 할인 연계."
+    ],
+    "PET": [
+        "반려동물(개·고양이) 의료비 보장. 수술, 입원, 통원비.",
+        "중성화수술비, 예방접종비 일부 환급. 광견병 백신 등.",
+        "산책 중 타인 배상책임 담보, 한도 설정.",
+        "노령동물(10세 이상) 가입할증, 건강검진 권장.",
+        "암진단 시 고액치료비 일부 보전. 항암제·면역치료 지원.",
+        "슬관절 탈구, 피부질환 등 특정품종 특약.",
+        "펫장례 특약(화장, 봉안), 펫이별관리 서비스.",
+        "반려견 등록비, 유실견 찾기 쿠폰 연계.",
+        "수술 후 재활(수중런닝머신) 일부 보상.",
+        "가입 시 펫사료 할인쿠폰, 정기검진 안내."
+    ],
+    "NURSING": [
+        "간병보험: 장기요양1~5등급 등급별 간병비 월지급.",
+        "요양병원 입원비, 간병인 고용비 일부 커버.",
+        "퇴원 후 방문간호, 복지용구 대여비 지원.",
+        "납입면제(중증질환) 제도, 가족간병 특약.",
+        "치매·뇌졸중 등 노인성질환 간병비 연동.",
+        "방문요양 쿠폰 연2회, 보호자 심리상담.",
+        "시설입소 보증금 파손 위험 담보, 파산시 일부 환급.",
+        "간편심사(3·2·1문) 노령층 가입 용이.",
+        "재활치료비, 작업치료 옵션 별도.",
+        "무심사형(보장금액 제한) 플랜 존재."
+    ],
+    "TRAVEL": [
+        "해외여행 중 질병·상해, 항공기 지연, 수하물 파손 보장.",
+        "여권 분실 시 재발급 비용, 긴급현금지원.",
+        "스쿠버·스카이다이빙 등 레저특약(고위험 할증).",
+        "코로나 확진 시 여행취소비용 일부 보상.",
+        "해외입원, 현지 간호인 파견, 법률지원.",
+        "항공편 결항, 숙박연장 비용, 일정 변경.",
+        "배상책임(타인·시설 파손) 변호사비.",
+        "24시간 핫라인, 통역서비스, 대사관 협조.",
+        "스마트폰·노트북 분실·파손 한도.",
+        "장기유학·워홀 전용 설계, 연장 가능."
+    ],
+    "ETC": [
+        "골프보험, 낚시보험, 레저보험 등 이색 상품.",
+        "반려식물보험, 악기파손보험, 특정이벤트 단기보험.",
+        "기업 임직원 단체상해, 복지특약, 보증보험 등.",
+        "축제·행사 배상책임, 인원안전 담보, 장비 파손.",
+        "연예인·스턴트맨 고위험직군 전용. 산재사각 보완.",
+        "예술품·명품가방 파손·도난 담보.",
+        "농작물재해, 가축재해, 자연재해 연결 특약.",
+        "특정 질병(에이즈, 희귀질환) 전용 플랜.",
+        "우주여행 대비 고공비행보험(개발 중).",
+        "가정종합+이색담보(드론, 자전거, 캠핑장비)."
     ]
 }
 
-# 카테고리 목록
-categories = list(base_coverage_details.keys())
+# 필요 시 각 key에 최소 10개 이상의 문구가 되도록 확장
+def extend_coverage(min_count=10):
+    for k, arr in base_coverage_details.items():
+        while len(arr) < min_count:
+            arr.append(f"{k} 추가보장문구 {len(arr)+1}")
+extend_coverage(min_count=10)
 
-# 카테고리별 50개 확장
-coverage_details_map_final = {}
-for cat, details in base_coverage_details.items():
-    new_list = details[:]
-    base_len = len(new_list)
-    if base_len < 50:
-        for i in range(base_len+1, 51):
-            new_detail = f"{cat} 확장 문구{i}: (테스트용 더미 보장내용)"
-            new_list.append(new_detail)
-    coverage_details_map_final[cat] = new_list
+category_list = list(base_coverage_details.keys())  # Enum name list
 
-
-#############################
-# (3) 보험상품 생성로직
-#############################
 
 def generate_insurance_products(num=500):
+    """
+    - product_id: 1..num
+    - company_name: from base_products
+    - product_name: from base_products[company]
+    - product_type: from category_list (Enum name)
+    - coverage_details: from base_coverage_details[product_type]
+    - monthly_premium: random
+    """
     data = []
     product_id_start = 1
-    for i in range(num):
-        company = random.choice(list(possible_products_final.keys()))
-        product_name = random.choice(possible_products_final[company])
+    companies = list(base_products.keys())
 
-        category = random.choice(categories)
-        coverage_list = coverage_details_map_final[category]
-        coverage_details = random.choice(coverage_list)
+    for _ in range(num):
+        company = random.choice(companies)
+        product_name = random.choice(base_products[company])
 
-        monthly_premium = random.randint(15000,60000)
-        min_age = random.choice([0,18,20,30])
-        max_age = random.choice([60,65,70,75,80])
-        if min_age > max_age:
-            min_age, max_age = max_age, min_age
+        product_type = random.choice(category_list)  # e.g. "CANCER","SURGERY",...
+        coverage_list = base_coverage_details[product_type]
+        coverage_text = random.choice(coverage_list)
+
+        premium = random.randint(15000, 60000)
 
         data.append([
             product_id_start,
             company,
             product_name,
-            category,
-            coverage_details,
-            monthly_premium,
-            min_age,
-            max_age
+            product_type,        # Enum name
+            coverage_text,
+            premium
         ])
         product_id_start += 1
+
     return data
 
 def save_insurance_products_csv(data, filename="insurance_products.csv"):
-    headers = ["product_id","company_name","product_name","product_category","coverage_details","monthly_premium","min_age","max_age"]
+    headers = ["product_id","company_name","product_name","product_type","coverage_details","monthly_premium"]
     with open(filename, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(headers)
         writer.writerows(data)
 
+
 #############################
-# (4) 사용자 건강정보
+# 3) 건강정보 (UserHealth) (user_health.csv)
 #############################
 
-first_names = ["김", "이", "박", "최", "정", "강", "조", "윤", "장", "오", "한", "신", "서", "유", "권", "황", "안", "송", "전", "홍"]
-middle_tail_names = ["나라","민기","용기","화경","정은","혜정","윤지","영찬","지영","지수","준빈","기영","진원",
-                     "채연","종혁","유진","민수","민지","영희","미영","재훈","도윤","서연","지민","하윤","서현",
-                     "지원","현우","유정","가영","상민","동혁","다은"]
+job_type_list = [
+    "OFFICE",
+    "DELIVERY",
+    "CONSTRUCTION",
+    "SELF_EMPLOYED",  # 변경
+    "STUDENT",
+    "HOUSEWIFE",      # 변경
+    "UNEMPLOYED"
+]
 
-def generate_user_health_info(num=500):
+def generate_user_health(num=500):
+    """
+    - health_id: 1..num
+    - user_id  : 1..num (1:1)
+    - age, gender("M"/"F"), height(cm), weight(kg), bmi(float)
+    - bloodPressureLevel(1~5), bloodSugarLevel(1~5)
+    - surgeryCount(0~5)
+    - isSmoker("true"/"false"), isDrinker("true"/"false")
+    - chronicDiseaseList(최대 2개 콤마)
+    - jobType(OFFICE,DELIVERY,CONSTRUCTION,SELFEMP,STUDENT,HOMEMAKER,UNEMPLOYED)
+    - hasChildren("true"/"false"), hasOwnHouse("true"/"false")
+    - hasPet("true"/"false"), hasFamilyHistory("true"/"false")
+    """
     data = []
-    health_id_start = 1
+    chronic_list = ["고혈압","당뇨","고지혈증","천식","관절염","뇌졸중","협심증","암","간염","심부전"]
 
-    chronic_opts = ["", "고혈압", "당뇨", "고지혈증", "천식", "관절염", "뇌졸중", "협심증", "암", "간염"]
-    surgery_opts = ["", "치아 임플란트(2021)", "맹장 수술(2019)", "슬관절 수술(2018)",
-                    "유방암 수술(2020)", "기관지 확장 수술(2017)", "심장 스텐트(2022)"]
+    for health_id in range(1, num+1):
+        user_id = health_id  # 1:1
 
-    for i in range(num):
-        health_id = health_id_start
-        fn = random.choice(first_names)
-        mn = random.choice(middle_tail_names)
-        user_name = fn + mn
-
-        age = random.randint(0,85)
+        age = random.randint(1,85)
         gender = random.choice(["M","F"])
-        height = round(random.uniform(150.0,180.0),1)
-        weight = round(random.uniform(45.0,90.0),1)
-        bmi = round(weight / ((height/100)**2),1)
+        height = random.randint(140,190)
+        weight = random.randint(40,100)
+        bmi_val = 0.0
+        if height > 0:
+            bmi_val = round(weight / ((height/100)**2), 1)
 
-        is_smoker  = random.randint(0,1)
-        is_drinker = random.randint(0,1)
+        bp_level = random.randint(1,5)
+        bs_level = random.randint(1,5)
+        scount = random.randint(0,5)
 
-        has_chronic_disease = 0
+        smoker_flag  = "true" if random.random()<0.3 else "false"
+        drinker_flag = "true" if random.random()<0.4 else "false"
+
+        # 만성질환
         cdl = ""
         if random.random() < 0.3:
-            has_chronic_disease = 1
-            pick = random.sample(chronic_opts[1:], random.randint(1,2))
-            cdl = ", ".join(pick)
+            pick_count = random.randint(1,2)
+            pick = random.sample(chronic_list, pick_count)
+            cdl = ",".join(pick)
 
-        sh = ""
-        if random.random() < 0.2:
-            sh = random.choice(surgery_opts[1:])
+        jt = random.choice(job_type_list)
 
-        systolic  = random.randint(100,160)
-        diastolic = random.randint(60,100)
-        bp = f"{systolic}/{diastolic}"
-
-        sugar= random.randint(80,140)
-        bs = f"{sugar} mg/dL"
+        has_children       = "true" if random.random()<0.4 else "false"
+        has_own_house      = "true" if random.random()<0.3 else "false"
+        has_pet            = "true" if random.random()<0.25 else "false"
+        has_family_history = "true" if random.random()<0.2 else "false"
 
         data.append([
             health_id,
-            user_name,
+            user_id,
             age,
             gender,
             height,
             weight,
-            bmi,
-            is_smoker,
-            is_drinker,
-            has_chronic_disease,
+            bmi_val,
+            bp_level,
+            bs_level,
+            scount,
+            smoker_flag,
+            drinker_flag,
             cdl,
-            sh,
-            bp,
-            bs
+            jt,
+            has_children,
+            has_own_house,
+            has_pet,
+            has_family_history
         ])
-        health_id_start += 1
-
     return data
 
-def save_user_health_info_csv(data, filename="user_health_info.csv"):
+def save_user_health_csv(data, filename="user_health.csv"):
     headers = [
-        "health_id","user_name","age","gender","height","weight","bmi",
-        "is_smoker","is_drinker","has_chronic_disease","chronic_disease_list",
-        "surgery_history","blood_pressure","blood_sugar"
+        "health_id",
+        "user_id",
+        "age",
+        "gender",
+        "height",
+        "weight",
+        "bmi",
+        "bloodPressureLevel",
+        "bloodSugarLevel",
+        "surgeryCount",
+        "isSmoker",
+        "isDrinker",
+        "chronicDiseaseList",
+        "jobType",
+        "hasChildren",
+        "hasOwnHouse",
+        "hasPet",
+        "hasFamilyHistory"
     ]
     with open(filename, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(headers)
         writer.writerows(data)
 
+
 #############################
-# (5) 메인
+# 메인 실행
 #############################
 if __name__ == "__main__":
-    # CSV가 이미 있으면 스킵
-    if os.path.exists("users.csv") or os.path.exists("user_health_info.csv") or os.path.exists("insurance_products.csv"):
-        print("이미 CSV 파일이 존재하므로 생성 스킵!")
+    # 이미 CSV가 있으면 스킵
+    if os.path.exists("users.csv") or os.path.exists("insurance_products.csv") or os.path.exists("user_health.csv"):
+        print("[INFO] CSV 파일이 이미 존재하므로 생성 스킵!")
         exit(0)
 
-    # (A) User 500개
-    users_data = generate_users(num=500)
-    save_users_csv(users_data, "users.csv")
+    print("=== CSV 더미데이터 생성 시작 ===")
 
-    # (B) 보험상품 500개
-    # (확장, 카테고리)
-    # 이미 base_products가 15개, 100개 확장
-    # coverage_details -> 50개 확장
-    products_data = generate_insurance_products(num=500)
-    save_insurance_products_csv(products_data, "insurance_products.csv")
+    # 1) 유저 500명 -> users.csv
+    user_data = generate_users(num=500)
+    save_users_csv(user_data, "users.csv")
+    print("users.csv 생성 완료 (500건)")
 
-    # (C) 건강정보 500개
-    health_data = generate_user_health_info(num=500)
-    save_user_health_info_csv(health_data, "user_health_info.csv")
+    # 2) 보험상품 500개 -> insurance_products.csv
+    #    카테고리는 Enum name (CANCER, SURGERY 등) 중 랜덤
+    product_data = generate_insurance_products(num=500)
+    save_insurance_products_csv(product_data, "insurance_products.csv")
+    print("insurance_products.csv 생성 완료 (500건)")
 
-    print("CSV 파일 생성 완료!")
-    print(" - users.csv")
-    print(" - user_health_info.csv")
-    print(" - insurance_products.csv")
+    # 3) 건강정보 500개 -> user_health_info.csv
+    #    health_id = user_id (1:1)
+    health_data = generate_user_health(num=500)
+    save_user_health_csv(health_data, "user_health.csv")
+    print("user_health.csv 생성 완료 (500건)")
+
+    print("=== CSV 파일 생성 끝 ===")

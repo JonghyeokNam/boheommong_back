@@ -13,6 +13,11 @@ spring:
   application:
     name: boheommong
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://boheommong.ch8kk2u4asui.ap-northeast-2.rds.amazonaws.com/boheommong

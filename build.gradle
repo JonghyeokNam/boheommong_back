@@ -50,6 +50,18 @@ dependencies {
 
 	// security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	// Google Authenticator (TOTP)
+	implementation('com.warrenstrange:googleauth:1.4.0') {
+		exclude group: 'org.apache.httpcomponents', module: 'httpclient'
+	}
+
+	// 최신 버전 명시
+	implementation 'org.apache.httpcomponents:httpclient:4.5.14'
+
+	// redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
 }
 
 tasks.named('test') {
