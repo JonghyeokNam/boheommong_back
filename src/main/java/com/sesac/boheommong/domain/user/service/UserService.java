@@ -28,4 +28,7 @@ public interface UserService {
      * (ex: 건강정보나 특정 필드가 있는지에 따라 true/false)
      */
     Boolean getCheckNewUser(String loginEmail);
+
+
+
 }
