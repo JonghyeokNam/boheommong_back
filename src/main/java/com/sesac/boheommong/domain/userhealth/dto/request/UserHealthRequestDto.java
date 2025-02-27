@@ -36,7 +36,10 @@ public record UserHealthRequestDto(
         @Schema(description = "음주 여부", example = "true")
         Boolean isDrinker,
 
-        @Schema(description = "만성질환 목록(콤마 구분)", example = "고혈압,당뇨")
+        @Schema(
+                description = "만성질환 목록(배열)",
+                example = "[\"고혈압\", \"당뇨\"]"
+        )
         List<String> chronicDiseaseList,
 
         @Schema(description = "직업(OFFICE/DELIVERY/CONSTRUCTION...)", example = "OFFICE")
