@@ -51,7 +51,9 @@ public class User extends BaseEntity {
 
     // 정적 팩토리 메서드
     public static User create(String name, String loginEmail, String userEmail, Role role) {
-        return new User(name, loginEmail, userEmail, role);
+        User user = new User(name, loginEmail, userEmail, role);
+        user.totpEnabled = true; // 명시적으로 설정
+        return user;
     }
 
     // 필요한 update 메서드가 있다면 추가
