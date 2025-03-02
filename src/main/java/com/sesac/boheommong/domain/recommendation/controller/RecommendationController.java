@@ -6,6 +6,8 @@ import com.sesac.boheommong.domain.user.entity.User;
 import com.sesac.boheommong.domain.user.service.UserService;
 import com.sesac.boheommong.domain.userhealth.entity.UserHealth;
 import com.sesac.boheommong.domain.userhealth.repository.UserHealthRepository;
+import com.sesac.boheommong.global.exception.BaseException;
+import com.sesac.boheommong.global.exception.error.ErrorCode;
 import com.sesac.boheommong.global.jwt.service.TokenProvider;
 import com.sesac.boheommong.global.response.Response;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,7 +41,7 @@ public class RecommendationController {
 
         // 3) userHealth 조회
         UserHealth userHealth = userHealthRepository.findByUser(user)
-                .orElseThrow(() -> new IllegalStateException("건강정보가 없습니다."));
+                .orElseThrow(() -> BaseException.from(ErrorCode.USER_HEALTH_NOT_FOUND));
 
         // 4) 추천 로직
         RecommendationResponseDto result = recommendationService.recommend(userHealth);
