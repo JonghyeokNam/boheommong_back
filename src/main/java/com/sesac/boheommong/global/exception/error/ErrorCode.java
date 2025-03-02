@@ -23,7 +23,6 @@ public enum ErrorCode {
     // insurance product
     INSURANCE_PRODUCT_NOT_FOUND("INS-0001", "해당 보험 상품이 존재하지 않습니다.", ErrorDisplayType.POPUP)
     ;
-    ;
 
     private final String code;
     private final String message;
