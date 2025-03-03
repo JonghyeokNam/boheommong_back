@@ -52,7 +52,7 @@ jobs:
           key: ${{ secrets.REMOTE_PRIVATE_KEY }}
           port: 22
           script: |
-            cd /home/ubuntu/boheommong_back
+            cd /home/ubuntu/back
             git pull origin develop
             pkill -f 'java -jar' || true
             ./gradlew clean build
