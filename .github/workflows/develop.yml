@@ -79,7 +79,7 @@ jobs:
           port: 22
           script: |
             cd /home/ubuntu/back
-            git pull origin develop
+            git pull --rebase origin develop
             pkill -f 'java -jar' || true
             ./gradlew clean build
             nohup java -jar build/libs/boheommong.jar --server.port=8080 &
