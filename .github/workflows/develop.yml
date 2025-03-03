@@ -12,6 +12,14 @@ jobs:
     # pull_request일 때만 동작
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    env:
+      MYSQLDB_USERNAME: ${{ secrets.MYSQLDB_USERNAME }}
+      MYSQLDB_PASSWORD: ${{ secrets.MYSQLDB_PASSWORD }}
+      MYSQLDB_ROOT_PASSWORD: ${{ secrets.MYSQLDB_ROOT_PASSWORD }}
+      JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+      JWT_SECRET_KEY_CODE: ${{ secrets.JWT_SECRET_KEY_CODE }}
+      KAKAO_OAUTH_CLIENT_SECRET: ${{ secrets.KAKAO_OAUTH_CLIENT_SECRET }}
+      KAKAO_OAUTH_CLIENT_ID: ${{ secrets.KAKAO_OAUTH_CLIENT_ID }}
     steps:
       - name: Check out
         uses: actions/checkout@v2
@@ -31,6 +39,14 @@ jobs:
     # push (즉, develop에 최종 커밋) 이벤트일 때만 실행
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    env:
+      MYSQLDB_USERNAME: ${{ secrets.MYSQLDB_USERNAME }}
+      MYSQLDB_PASSWORD: ${{ secrets.MYSQLDB_PASSWORD }}
+      MYSQLDB_ROOT_PASSWORD: ${{ secrets.MYSQLDB_ROOT_PASSWORD }}
+      JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+      JWT_SECRET_KEY_CODE: ${{ secrets.JWT_SECRET_KEY_CODE }}
+      KAKAO_OAUTH_CLIENT_SECRET: ${{ secrets.KAKAO_OAUTH_CLIENT_SECRET }}
+      KAKAO_OAUTH_CLIENT_ID: ${{ secrets.KAKAO_OAUTH_CLIENT_ID }}
     steps:
       - name: Check out
         uses: actions/checkout@v2
