@@ -71,13 +71,12 @@ jobs:
         run: ./gradlew clean build
 
       - name: SSH into server
-        uses: appleboy/ssh-action@v0.1.6
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.REMOTE_IP }}
           username: ubuntu
           key: ${{ secrets.REMOTE_PRIVATE_KEY }}
           port: 22
-          script_stop: false
           script: |
             cd /home/ubuntu/back
             git pull --rebase origin develop
