@@ -46,6 +46,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
             // 세션에 QR_URL, userId 저장
             request.getSession().setAttribute("QR_URL", result.getOtpAuthUrl());
+            log.info("@@@@@@@@@@@@@@@@");
+            log.info(request.getSession().getAttribute("QR_URL"));
             request.getSession().setAttribute("TOTP_PENDING_USERID", user.getUserId());
 
             // QR 페이지로 리다이렉트
