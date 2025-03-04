@@ -1,5 +1,6 @@
 package com.sesac.boheommong.domain.insurance.service;
 
+import com.sesac.boheommong.domain.insurance.dto.response.InsuranceProductDetailResponseDto;
 import com.sesac.boheommong.domain.insurance.dto.response.InsuranceProductResponseDto;
 import com.sesac.boheommong.domain.insurance.entity.InsuranceProduct;
 import com.sesac.boheommong.domain.insurance.enums.InsuranceType;
@@ -43,5 +44,15 @@ public class InsuranceProductServiceImpl implements InsuranceProductService {
         // 3) findAll + map -> DTO
         return productRepo.findAll(spec, pageable)
                 .map(InsuranceProductResponseDto::fromEntity);
+    }
+
+    @Override
+    public InsuranceProductDetailResponseDto getInsuranceProductDetail(Long productId) {
+        InsuranceProduct product = productRepo.findById(productId)
+                .orElseThrow(() -> new RuntimeException(
+                        "해당 보험상품을 찾을 수 없습니다. productId=" + productId
+                ));
+
+        return InsuranceProductDetailResponseDto.fromEntity(product);
     }
 }

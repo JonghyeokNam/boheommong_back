@@ -1,5 +1,6 @@
 package com.sesac.boheommong.domain.insurance.service;
 
+import com.sesac.boheommong.domain.insurance.dto.response.InsuranceProductDetailResponseDto;
 import com.sesac.boheommong.domain.insurance.dto.response.InsuranceProductResponseDto;
 import com.sesac.boheommong.domain.insurance.enums.InsuranceType;
 import org.springframework.data.domain.Page;
@@ -18,4 +19,5 @@ public interface InsuranceProductService {
             List<InsuranceType> categories,
             String productName
     );
+    InsuranceProductDetailResponseDto getInsuranceProductDetail(Long productId);
 }
