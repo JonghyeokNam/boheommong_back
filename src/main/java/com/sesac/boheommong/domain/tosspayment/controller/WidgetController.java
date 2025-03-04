@@ -54,7 +54,7 @@ public class WidgetController {
         byte[] encodedBytes = encoder.encode((widgetSecretKey + ":").getBytes(StandardCharsets.UTF_8));
         String authorizations = "Basic " + new String(encodedBytes);
 
-        // 결제를 승인하면 결제수단에서 금액이 차감돼요.
+        // 결제를 승인하면 결제수단에서 금액이 차감
         URL url = new URL("https://api.tosspayments.com/v1/payments/confirm");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("Authorization", authorizations);
@@ -70,7 +70,7 @@ public class WidgetController {
 
         InputStream responseStream = isSuccess ? connection.getInputStream() : connection.getErrorStream();
 
-        // 결제 성공 및 실패 비즈니스 로직을 구현하세요.
+        // 결제 성공 및 실패 비즈니스 로직
         Reader reader = new InputStreamReader(responseStream, StandardCharsets.UTF_8);
         JSONObject jsonObject = (JSONObject) parser.parse(reader);
         responseStream.close();
