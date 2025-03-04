@@ -1,6 +1,11 @@
 # 추가 예시(필요에 따라 사용)
 server:
   port: 8080
+  servlet:
+    session:
+      cookie:
+        same-site: none
+        secure: false
 
 logging:
   level:
