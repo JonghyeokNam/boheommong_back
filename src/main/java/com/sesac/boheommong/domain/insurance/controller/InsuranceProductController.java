@@ -1,5 +1,6 @@
 package com.sesac.boheommong.domain.insurance.controller;
 
+import com.sesac.boheommong.domain.insurance.dto.response.InsuranceProductDetailResponseDto;
 import com.sesac.boheommong.domain.insurance.dto.response.InsuranceProductResponseDto;
 import com.sesac.boheommong.domain.insurance.enums.InsuranceType;
 import com.sesac.boheommong.domain.insurance.service.InsuranceProductService;
@@ -92,5 +93,24 @@ public class InsuranceProductController {
 
         // 3) 응답
         return Response.success(result);
+    }
+    @Operation(
+            summary = "보험상품 상세조회",
+            description = "주어진 productId로 보험상품 정보를 상세조회합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "해당 상품을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    @GetMapping("/{productId}")
+    public Response<InsuranceProductDetailResponseDto> getInsuranceProductDetail(
+            @PathVariable Long productId
+    ) {
+        // Service 호출
+        InsuranceProductDetailResponseDto detailDto = productService.getInsuranceProductDetail(productId);
+
+        // 커스텀 Response 객체로 감싸서 반환 (ex: Response.success(data))
+        return Response.success(detailDto);
     }
 }
