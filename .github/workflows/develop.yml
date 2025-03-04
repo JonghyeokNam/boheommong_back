@@ -58,6 +58,8 @@ jobs:
           envs: MYSQLDB_USERNAME, MYSQLDB_PASSWORD, MYSQLDB_ROOT_PASSWORD, JWT_ISSUER, JWT_SECRET_KEY_CODE, KAKAO_OAUTH_CLIENT_SECRET, KAKAO_OAUTH_CLIENT_ID 
           script_stop: true
           script: |
+            echo "MYSQLDB_USERNAME: $MYSQLDB_USERNAME"
+            echo "MYSQLDB_PASSWORD: $MYSQLDB_PASSWORD"
             rm -rf ./current
             mkdir ./current
             mv ./tobe/boheommong.jar ./current/boheommong.jar
