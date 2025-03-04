@@ -10,6 +10,8 @@ import com.sesac.boheommong.domain.user.repository.UserRepository;
 import com.sesac.boheommong.global.exception.BaseException;
 import com.sesac.boheommong.global.exception.error.ErrorCode;
 import com.sesac.boheommong.global.response.Response;
+import com.sesac.boheommong.infra.redis.NotificationMessage;
+import com.sesac.boheommong.infra.redis.NotificationPublisher;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class NotificationService {
     private final EmitterRepository emitterRepository;
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final NotificationPublisher notificationPublisher;
 
     // 연결 지속시간 한시간
     private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
@@ -88,6 +91,18 @@ public class NotificationService {
                 .toList();
     }
 
+    public void publishNotification(Long receiverId, String content, String url) {
+        // (1) 메시지 DTO 생성
+        NotificationMessage msg = new NotificationMessage();
+        msg.setReceiverId(receiverId);
+        msg.setContent(content);
+        msg.setUrl(url);
+        msg.setNotificationType(NotificationType.AUTOPAYMENT);
+
+        // (2) Redis에 Publish
+        notificationPublisher.publish(msg);
+    }
+
     private Notification createNotification(User receiver, NotificationType notificationType, String content, String url) {
         return  Notification.builder().receiver(receiver).notificationType(notificationType).content(content).url(url).build();
     }
@@ -137,5 +152,42 @@ public class NotificationService {
         // soft-delete
         notificationRepository.delete(notification);
         // @SQLDelete(sql="UPDATE notifications SET is_deleted = true, deleted_at=now()...") 에 의해 실제로는 UPDATE로 처리
+    }
+
+    public void sendByRedisMessage(NotificationMessage msg) {
+        // 1) DB 저장
+        User receiver = userRepository.findById(msg.getReceiverId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Notification notification = notificationRepository.save(
+                new Notification(receiver, msg.getNotificationType(), msg.getContent(), msg.getUrl())
+        );
+
+        // 2) SSE로 전송
+        String userId = String.valueOf(receiver.getUserId());
+        Map<String, SseEmitter> sseEmitters = emitterRepository.findAllEmitterByUserId(userId);
+
+        sseEmitters.forEach((key, emitter) -> {
+            try {
+                // (옵션) 캐시에 이벤트 저장, 재연결 시 누락 이벤트 전송 용도
+                emitterRepository.saveEventCache(key, notification);
+
+                // DTO 변환
+                NotificationResponseDto dto = NotificationResponseDto.from(notification);
+                // 보통 공통 Response 래퍼를 쓰거나, dto 자체를 data로 전송
+                Response<NotificationResponseDto> response = Response.success(dto);
+
+                // 실제 SSE 이벤트 전송
+                emitter.send(
+                        SseEmitter.event()
+                                .id(key)              // 이벤트 ID
+                                .name("notification") // 이벤트 명
+                                .data(response)       // 보내고자 하는 데이터
+                );
+
+            } catch (IOException e) {
+                // 전송 실패 시 Emitter 제거
+                emitterRepository.deleteById(key);
+            }
+        });
     }
 }

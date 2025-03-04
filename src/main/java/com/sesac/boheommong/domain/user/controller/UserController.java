@@ -118,6 +118,14 @@ public class UserController {
     })
     @GetMapping("/check")
     public Response<Boolean> checkNewUser(HttpServletRequest request) {
-        return Response.success(userService.getCheckNewUser(tokenProvider.getUserLoginEmail(request)));
+        // 1) 예: tokenProvider.getUserLoginEmail(request)로 토큰에서 email
+        String loginEmail = tokenProvider.getUserLoginEmail(request);
+
+        // 2) Service 호출
+        boolean isNew = userService.getCheckNewUser(loginEmail);
+
+        // 3) 결과 반환
+        return Response.success(isNew);
     }
+
 }

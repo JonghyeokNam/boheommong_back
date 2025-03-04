@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserHealthServiceImpl implements UserHealthService {
@@ -38,6 +40,8 @@ public class UserHealthServiceImpl implements UserHealthService {
         // 3) jobType 변환 (기본적으로 'OFFICE','DELIVERY' 등 enum name과 매칭)
         JobType jobEnum = JobType.valueOf(request.jobType());
 
+        String diseaseStr = convertListToCommaString(request.chronicDiseaseList());
+
         // 4) 엔티티 생성
         UserHealth newHealth = UserHealth.create(
                 user,
@@ -50,7 +54,7 @@ public class UserHealthServiceImpl implements UserHealthService {
                 request.surgeryCount(),
                 request.isSmoker(),
                 request.isDrinker(),
-                request.chronicDiseaseList(),
+                diseaseStr,
                 jobEnum,
                 request.hasChildren(),
                 request.hasOwnHouse(),
@@ -63,6 +67,14 @@ public class UserHealthServiceImpl implements UserHealthService {
 
         // 6) DTO 변환
         return UserHealthResponseDto.fromEntity(saved);
+    }
+
+    // List -> 콤마 구분 문자열 변환
+    private String convertListToCommaString(List<String> list) {
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
+        return String.join(",", list);
     }
 
     /**
@@ -82,6 +94,8 @@ public class UserHealthServiceImpl implements UserHealthService {
         // 3) jobType 변환
         JobType jobEnum = JobType.valueOf(request.jobType());
 
+        String diseaseStr = convertListToCommaString(request.chronicDiseaseList());
+
         // 4) update
         existing.updateHealth(
                 request.age(),
@@ -93,7 +107,7 @@ public class UserHealthServiceImpl implements UserHealthService {
                 request.surgeryCount(),
                 request.isSmoker(),
                 request.isDrinker(),
-                request.chronicDiseaseList(),
+                diseaseStr,
                 jobEnum,
                 request.hasChildren(),
                 request.hasOwnHouse(),
