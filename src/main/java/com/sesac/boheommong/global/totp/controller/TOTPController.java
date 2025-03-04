@@ -35,10 +35,11 @@ public class TOTPController {
     @GetMapping("/qr")
     public ResponseEntity<?> getQrUrl(HttpServletRequest request) {
         String qrUrl = (String) request.getSession().getAttribute("QR_URL");
-        log.debug("Session ID: " + request.getSession().getId());
-        log.debug("QR_URL: " + request.getSession().getAttribute("QR_URL"));
+        System.out.println(qrUrl);
+        log.info("Session ID: " + request.getSession().getId());
+        log.info("QR_URL: " + request.getSession().getAttribute("QR_URL"));
         if (qrUrl == null) {
-            System.out.println("에러러러러럴");
+            System.out.println("두번째에러러러러럴");
             return ResponseEntity.badRequest().body("No QR available");
         }
         return ResponseEntity.ok(Map.of("qrUrl", qrUrl));
