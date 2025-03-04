@@ -10,4 +10,9 @@ public class HelloController {
     public String hello() {
         return "Hello Swagger!";
     }
+
+    @GetMapping
+    public String main() {
+        return "main page";
+    }
 }
