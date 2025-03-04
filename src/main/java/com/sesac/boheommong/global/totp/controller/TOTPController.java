@@ -10,12 +10,14 @@ import com.sesac.boheommong.global.totp.service.TOTPService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/otp")
 @RequiredArgsConstructor
@@ -33,7 +35,10 @@ public class TOTPController {
     @GetMapping("/qr")
     public ResponseEntity<?> getQrUrl(HttpServletRequest request) {
         String qrUrl = (String) request.getSession().getAttribute("QR_URL");
+        log.debug("Session ID: " + request.getSession().getId());
+        log.debug("QR_URL: " + request.getSession().getAttribute("QR_URL"));
         if (qrUrl == null) {
+            System.out.println("에러러러러럴");
             return ResponseEntity.badRequest().body("No QR available");
         }
         return ResponseEntity.ok(Map.of("qrUrl", qrUrl));
