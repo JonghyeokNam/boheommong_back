@@ -1,0 +1,66 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+    env:
+      MYSQLDB_USERNAME: ${{ secrets.MYSQLDB_USERNAME }}
+      MYSQLDB_PASSWORD: ${{ secrets.MYSQLDB_PASSWORD }}
+      MYSQLDB_ROOT_PASSWORD: ${{ secrets.MYSQLDB_ROOT_PASSWORD }}
+      JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+      JWT_SECRET_KEY_CODE: ${{ secrets.JWT_SECRET_KEY_CODE }}
+      KAKAO_OAUTH_CLIENT_SECRET: ${{ secrets.KAKAO_OAUTH_CLIENT_SECRET }}
+      KAKAO_OAUTH_CLIENT_ID: ${{ secrets.KAKAO_OAUTH_CLIENT_ID }}
+    steps:
+      - name: GitHub Repository에 올린 파일 불러오기
+        uses: actions/checkout@v2
+
+      - name: JDK 21 버전 설치
+        uses: actions/setup-java@v2
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: 테스트를 제외한 빌드
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean build -x test
+
+      - name: 빌드된 파일 위치 변경
+        run: mv ./build/libs/boheommong.jar ./boheommong.jar
+
+      - name: SCP로 EC2에 빌드된 파일 전송
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.REMOTE_IP }}
+          username: ubuntu
+          key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+          source: boheommong.jar
+          target: ./tobe
+
+      - name: ssh 원격 접속
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.REMOTE_IP }}
+          username: ubuntu
+          key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+          script_stop: true
+          script: |
+            rm -rf ./current
+            mkdir ./current
+            mv ./tobe/boheommong.jar ./current/boheommong.jar
+            cd ./current
+            sudo fuser -k -n tcp 8080 || true
+            nohup java -jar boheommong.jar > ./output.log 2>&1 &
+            rm -rf ./tobe
