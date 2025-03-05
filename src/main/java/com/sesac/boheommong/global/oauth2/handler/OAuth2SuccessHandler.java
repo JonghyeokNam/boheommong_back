@@ -25,9 +25,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final UserRepository userRepository;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request,
-                                        HttpServletResponse response,
-                                        Authentication authentication) throws IOException {
+    public void onAuthenticationSuccess(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Authentication authentication
+    ) throws IOException {
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = (String) oAuth2User.getAttributes().get("email");
@@ -35,27 +37,50 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // 1) DB에서 User 조회
         User user = userService.getUserByLoginEmailOrElseThrow(email);
 
-        // 2) totpSecret이 없으면 => 최초 TOTP 등록 (QR)
+        // 2) totpSecret, pendingTotpSecret 판단
         if (user.getTotpSecret() == null) {
-            // 새 시크릿 & QR URL 생성
-            TOTPService.TotpInitResult result = totpService.createSecretAndQR(user.getLoginEmail());
+            // totpSecret 아직 없음 => (A) *진짜* 최초 등록 OR (B) 등록 미완료 상태
+            if (user.getPendingTotpSecret() == null) {
+                // (A) 정말로 처음 => QR 생성
+                TOTPService.TotpInitResult result = totpService.createSecretAndQR(user.getLoginEmail());
 
-            // DB 저장
-            user.setTotpSecret(result.getSecret());
-            userRepository.save(user);
+                // DB: pending 에만 저장
+                user.setPendingTotpSecret(result.getSecret());
+                userRepository.save(user);
 
-            // 세션에 QR_URL, userId 저장
-            request.getSession().setAttribute("QR_URL", result.getOtpAuthUrl());
-            request.getSession().setAttribute("TOTP_PENDING_USERID", user.getUserId());
+                // 세션에 QR_URL, userId 저장
+                request.getSession().setAttribute("QR_URL", result.getOtpAuthUrl());
+                request.getSession().setAttribute("TOTP_PENDING_USERID", user.getUserId());
 
-            // QR 페이지로 리다이렉트
+                log.info("[OAuth2SuccessHandler] First TOTP: created pending secret. userId={}", user.getUserId());
+            } else {
+
+                // 1) 기존 pending secret 가져오기
+                String oldPendingSecret = user.getPendingTotpSecret();
+
+                // 2) 해당 secret으로 다시 QR URL 생성 (새 secret 발급X)
+                //    -> TOTPService에 createQrUrlFromSecret(...) 메서드 작성
+                String reusedQrUrl = totpService.createQrUrlFromSecret(oldPendingSecret, user.getLoginEmail());
+
+
+                request.getSession().setAttribute("QR_URL", reusedQrUrl);
+                request.getSession().setAttribute("TOTP_PENDING_USERID", user.getUserId());
+
+
+                log.info("[OAuth2SuccessHandler] Already pending. Re-generate QR for userId={}", user.getUserId());
+            }
+
+            // => 무조건 QR 페이지로 이동
             getRedirectStrategy().sendRedirect(request, response, "http://localhost:3000/otp/qr");
         }
-        // 3) 시크릿이 있으면 => 매번 OTP
         else {
+            // 3) 이미 totpSecret != null => 매번 OTP
             request.getSession().setAttribute("TOTP_PENDING_USERID", user.getUserId());
+            log.info("[OAuth2SuccessHandler] totpSecret exists => OTP stage. userId={}", user.getUserId());
+
             // OTP 입력 페이지로
             getRedirectStrategy().sendRedirect(request, response, "http://localhost:3000/otp");
         }
     }
+
 }
