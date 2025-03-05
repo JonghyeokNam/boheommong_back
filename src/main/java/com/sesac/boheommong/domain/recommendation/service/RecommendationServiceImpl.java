@@ -76,7 +76,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         // (C) 문구 조립
         StringBuilder sb = new StringBuilder();
         sb.append("고객님의 현재 상황을 종합적으로 검토한 결과,\n")
-                .append("아래와 같은 주요 위험 요소가 확인되었습니다:\n\n");
+                .append("아래와 같은 주요 위험 요소가 확인되었습니다.\n\n");
 
         for (String factor : riskFactors) {
             sb.append(factor).append("\n");
@@ -94,18 +94,18 @@ public class RecommendationServiceImpl implements RecommendationService {
         // 나이
         Integer age = uh.getAge();
         if (age != null && age >= 50) {
-            factors.add("나이가 50세 이상");
+            factors.add("50세 이상");
         } else if (age != null && age >= 30) {
-            factors.add("나이가 30세 이상");
+            factors.add("30세 이상");
         }
 
         // 흡연
         if (Boolean.TRUE.equals(uh.getIsSmoker())) {
-            factors.add("흡연");
+            factors.add("흡연자");
         }
         // 음주
         if (Boolean.TRUE.equals(uh.getIsDrinker())) {
-            factors.add("음주습관");
+            factors.add("잦은 음주습관");
         }
         // 가족력
         if (Boolean.TRUE.equals(uh.getHasFamilyHistory())) {
@@ -113,7 +113,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
         // 자녀
         if (Boolean.TRUE.equals(uh.getHasChildren())) {
-            factors.add("자녀가 있음");
+            factors.add("자녀 O");
         }
         // 자가주택
         if (Boolean.TRUE.equals(uh.getHasOwnHouse())) {
@@ -121,7 +121,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         }
         // 반려동물
         if (Boolean.TRUE.equals(uh.getHasPet())) {
-            factors.add("반려동물 양육");
+            factors.add("반려동물 有");
 
         }
         // 직업
@@ -145,11 +145,17 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         // 혈압레벨
         if (uh.getBloodPressureLevel() != null && uh.getBloodPressureLevel() >= 4) {
-            factors.add("고혈압 레벨");
+            factors.add("고혈압");
         }
         // 혈당레벨
         if (uh.getBloodSugarLevel() != null && uh.getBloodSugarLevel() >= 4) {
-            factors.add("고혈당 레벨");
+            factors.add("고혈당");
+        }
+
+        // 수술 횟수
+        Integer surgeryCount = uh.getSurgeryCount();
+        if (uh.getSurgeryCount() != null && uh.getSurgeryCount() >= 3) {
+            factors.add("잦은 수술 이력(" + surgeryCount + "회)");
         }
 
         return factors;
