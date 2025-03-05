@@ -32,10 +32,11 @@ public class ScoreCalculator {
             } else if (age >= 30) {
                 addScore(scores, InsuranceType.CANCER, 7);
                 addScore(scores, InsuranceType.LIFE, 5);
-            } else {
+            } else if (age >= 10){
                 // 30 미만
-                addScore(scores, InsuranceType.CHILD, 3);
                 addScore(scores, InsuranceType.TRAVEL, 3);
+            } else {
+                addScore(scores, InsuranceType.CHILD, 3);
             }
         }
 
@@ -167,11 +168,14 @@ public class ScoreCalculator {
         if (uh.getSurgeryCount() != null) {
             int sc = uh.getSurgeryCount();
             if (sc == 1 || sc == 2) {
-                addScore(scores, InsuranceType.SURGERY, sc * 3);
+                addScore(scores, InsuranceType.SURGERY, sc * 3); // 3 또는 6 점
             } else if (sc == 3 || sc == 4) {
                 addScore(scores, InsuranceType.SURGERY, 8);
+                addScore(scores, InsuranceType.LIFE, 5);
             } else if (sc >= 5) {
                 addScore(scores, InsuranceType.SURGERY, 10);
+                addScore(scores, InsuranceType.LIFE, 7);
+                addScore(scores, InsuranceType.HEALTHCARE, 5);
             }
         }
 
