@@ -44,6 +44,7 @@ public class SecurityConfig {
                 .cors(cors -> {
                     CorsConfiguration configuration = new CorsConfiguration();
                     configuration.addAllowedOrigin("http://localhost:3000");
+                    configuration.addAllowedOrigin("https://boheommong.site");
                     configuration.addAllowedMethod("*");
                     configuration.addAllowedHeader("*");
                     configuration.setAllowCredentials(true);
