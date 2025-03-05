@@ -75,8 +75,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
         // (C) 문구 조립
         StringBuilder sb = new StringBuilder();
-        sb.append(userName)
-                .append(", 고객님의 현재 상황을 종합적으로 검토한 결과,\n")
+        sb.append("고객님의 현재 상황을 종합적으로 검토한 결과,\n")
                 .append("아래와 같은 주요 위험 요소가 확인되었습니다:\n\n");
 
         for (String factor : riskFactors) {
