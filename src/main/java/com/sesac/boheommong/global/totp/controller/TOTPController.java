@@ -1,6 +1,7 @@
 package com.sesac.boheommong.global.totp.controller;
 
 import com.sesac.boheommong.domain.user.entity.User;
+import com.sesac.boheommong.domain.user.repository.UserRepository;
 import com.sesac.boheommong.domain.user.service.UserService;
 import com.sesac.boheommong.global.jwt.domain.RefreshToken;
 import com.sesac.boheommong.global.jwt.repository.RefreshTokenRepository;
@@ -25,6 +26,7 @@ public class TOTPController {
     private final TOTPService totpService;
     private final TokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final UserRepository userRepository;
 
     public static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
     private static final Duration REFRESH_TOKEN_DURATION = Duration.ofDays(14);
@@ -40,9 +42,11 @@ public class TOTPController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyOtp(HttpServletRequest request,
-                                       HttpServletResponse response,
-                                       @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> verifyOtp(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestBody Map<String, String> body
+    ) {
         Long userId = (Long) request.getSession().getAttribute("TOTP_PENDING_USERID");
         if (userId == null) {
             return ResponseEntity.status(401).body("No TOTP session");
@@ -52,26 +56,61 @@ public class TOTPController {
         String codeStr = body.get("otpCode");
         int code = Integer.parseInt(codeStr);
 
+        // ----------------------
+        // 1) 최종등록이 이미 되어 있는지?
+        // ----------------------
+        if (user.getTotpSecret() != null) {
+            // (A) 이미 최종 등록된 유저 => 'totpSecret'으로 매번 검증
+            boolean valid = totpService.verifyCode(user.getTotpSecret(), code);
+            if (!valid) {
+                return ResponseEntity.status(401).body("Invalid TOTP code (final).");
+            }
 
-        boolean valid = totpService.verifyCode(user.getTotpSecret(), code);
-        if (!valid) {
-            return ResponseEntity.status(401).body("Invalid TOTP code");
+            // 검증 성공 => JWT 발급 etc...
+            return doIssueTokensAndReturn(user, request, response);
         }
 
-        // ========== 이제 최종 JWT 발급 ==========
+        // ----------------------
+        // 2) 아직 최종등록 전 => pendingTotpSecret으로 검증
+        // ----------------------
+        String pendingSecret = user.getPendingTotpSecret();
+        if (pendingSecret == null) {
+            // 만약 여기도 null이면, 로직상 문제 or 이미 인증됨
+            return ResponseEntity.badRequest().body("No pending secret. Maybe already verified?");
+        }
+
+        boolean valid = totpService.verifyCode(pendingSecret, code);
+        if (!valid) {
+            return ResponseEntity.status(401).body("Invalid TOTP code (pending).");
+        }
+
+        // => 검증 성공 => pending -> totpSecret 확정
+        user.confirmTotpSecret();  // user.setTotpSecret(pending), pending=null
+        userRepository.save(user);
+
+        // 이후 토큰 발급 & 세션 정리
+        return doIssueTokensAndReturn(user, request, response);
+    }
+
+    private ResponseEntity<?> doIssueTokensAndReturn(
+            User user, HttpServletRequest request, HttpServletResponse response
+    ) {
+        // 1) Refresh 토큰 발급 & 저장
         String refreshToken = tokenProvider.generateToken(user, REFRESH_TOKEN_DURATION);
         saveRefreshToken(user.getUserId(), refreshToken);
         addRefreshTokenToCookie(request, response, refreshToken);
 
+        // 2) Access 토큰 발급 & 헤더에 추가
         String accessToken = tokenProvider.generateToken(user, ACCESS_TOKEN_DURATION);
         response.setHeader("Authorization", "Bearer " + accessToken);
 
-        // 세션 정리
+        // 3) 세션 정리
         request.getSession().removeAttribute("TOTP_PENDING_USERID");
         request.getSession().removeAttribute("QR_URL");
 
         return ResponseEntity.ok(Map.of("accessToken", accessToken));
     }
+
 
     private void saveRefreshToken(Long userId, String newRefreshToken) {
         RefreshToken refreshToken = refreshTokenRepository.findByUserId(userId)
