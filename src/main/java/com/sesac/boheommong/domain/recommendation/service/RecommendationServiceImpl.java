@@ -33,6 +33,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         // 3) 전역 인트로
         String globalIntro = buildGlobalIntro(userHealth);
 
+        Set<String> riskFactorsSet = gatherRiskFactors(userHealth);
+        List<String> riskFactors = new ArrayList<>(riskFactorsSet);
+
         // 4) 점수 높은 순으로 정렬 => 상위 N개 (예: 5개)
         List<InsuranceType> sortedTypes = new ArrayList<>(scores.keySet());
         sortedTypes.sort((a, b) -> scores.get(b) - scores.get(a));
@@ -46,16 +49,16 @@ public class RecommendationServiceImpl implements RecommendationService {
             // 권장 문구
             String reasonText = mapKorInsuranceName(type) + " 가입을 권장드립니다.";
 
-            // 해당 카테고리 상품 => 최대 6개
+            // 해당 카테고리 상품 => 최대 3개
             List<RecommendedProductDto> productDtos = findProductsByCategory(allProducts, type);
-            if (productDtos.size() > 6) {
-                productDtos = productDtos.subList(0, 6);
+            if (productDtos.size() > 3) {
+                productDtos = productDtos.subList(0, 3);
             }
 
             categories.add(new RecommendationReasonGroupDto(reasonText, productDtos));
         }
 
-        return new RecommendationResponseDto(globalIntro, categories);
+        return new RecommendationResponseDto(globalIntro, riskFactors, categories);
     }
 
     private String buildGlobalIntro(UserHealth userHealth) {
@@ -73,17 +76,10 @@ public class RecommendationServiceImpl implements RecommendationService {
                     + "특별한 위험 요소는 확인되지 않았습니다.\n";
         }
 
-        // (C) 문구 조립
+        // 위험 요소가 있는 경우 => "인삿말 + 안내 + 맨 아래 권장 문구"만
         StringBuilder sb = new StringBuilder();
-        sb.append("고객님의 현재 상황을 종합적으로 검토한 결과,\n")
-                .append("아래와 같은 주요 위험 요소가 확인되었습니다.\n\n");
-
-        for (String factor : riskFactors) {
-            sb.append(factor).append("\n");
-        }
-
-        sb.append("\n위 요인들로 인해 향후 예기치 못한 부담이 발생할 수 있으므로,\n")
-                .append("보험 가입을 통해 대비하시는 것을 권장드립니다.");
+        sb.append(userName).append(", 고객님의 현재 상황을 종합적으로 검토한 결과,\n")
+                .append("아래와 같은 주요 위험 요소가 확인되었습니다.\n");
 
         return sb.toString();
     }
