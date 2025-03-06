@@ -71,7 +71,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             }
 
             // => 무조건 QR 페이지로 이동
-            getRedirectStrategy().sendRedirect(request, response, "http://localhost:3000/otp/qr");
+            getRedirectStrategy().sendRedirect(request, response, "https://boheommong.site/otp/qr");
         }
         else {
             // 3) 이미 totpSecret != null => 매번 OTP
@@ -79,7 +79,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             log.info("[OAuth2SuccessHandler] totpSecret exists => OTP stage. userId={}", user.getUserId());
 
             // OTP 입력 페이지로
-            getRedirectStrategy().sendRedirect(request, response, "http://localhost:3000/otp");
+            getRedirectStrategy().sendRedirect(request, response, "https://boheommong.site/otp");
         }
     }
 
