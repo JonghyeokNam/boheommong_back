@@ -1,5 +1,6 @@
 package com.sesac.boheommong.domain.tosspayment.entity;
 
+import com.sesac.boheommong.domain.insurance.entity.InsuranceProduct;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,4 +21,8 @@ public class AutoPaymentEntity {
 
     private Integer dayOfMonth;
     private String time;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id") // 외래키 이름 지정
+    private InsuranceProduct insuranceProduct;
 }
