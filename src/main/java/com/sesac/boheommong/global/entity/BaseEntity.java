@@ -30,4 +30,9 @@ public abstract class BaseEntity {
         this.isDeleted = true;
         this.deletedAt = LocalDateTime.now();
     }
+
+    public void restore() {
+        this.isDeleted = false;
+        this.deletedAt = null;
+    }
 }
