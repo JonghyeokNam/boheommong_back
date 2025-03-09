@@ -3,6 +3,8 @@ package com.sesac.boheommong.domain.user.controller;
 import com.sesac.boheommong.domain.user.dto.request.UserRequestDto;
 import com.sesac.boheommong.domain.user.dto.response.UserResponseDto;
 import com.sesac.boheommong.domain.user.entity.User;
+import com.sesac.boheommong.domain.user.entity.UserProduct;
+import com.sesac.boheommong.domain.user.service.UserProductService;
 import com.sesac.boheommong.domain.user.service.UserService;
 import com.sesac.boheommong.global.jwt.service.TokenProvider;
 import com.sesac.boheommong.global.jwt.service.TokenService;
@@ -19,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/users")
 @Slf4j
@@ -26,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final UserProductService userProductService;
     private final TokenService tokenService;
     private final TokenProvider tokenProvider;
     private static final String REFRESH_TOKEN_KEY_NAME = "refresh_token";
@@ -67,7 +72,6 @@ public class UserController {
                     content = @Content(schema = @Schema(implementation = Response.class))
             ),
     })
-
     @GetMapping
     public Response<UserResponseDto> getLoginUser(HttpServletRequest request) {
         String loginEmail = tokenProvider.getUserLoginEmail(request);
@@ -96,7 +100,6 @@ public class UserController {
     @PostMapping("/logout")
     public Response<Void> logout(HttpServletRequest request, HttpServletResponse response) {
         tokenService.deleteRefreshToken(tokenProvider.getUserLoginEmail(request));
-
         CookieUtil.deleteCookie(request, response, REFRESH_TOKEN_KEY_NAME);
         return Response.success();
     }
@@ -118,14 +121,64 @@ public class UserController {
     })
     @GetMapping("/check")
     public Response<Boolean> checkNewUser(HttpServletRequest request) {
-        // 1) 예: tokenProvider.getUserLoginEmail(request)로 토큰에서 email
         String loginEmail = tokenProvider.getUserLoginEmail(request);
-
-        // 2) Service 호출
         boolean isNew = userService.getCheckNewUser(loginEmail);
-
-        // 3) 결과 반환
         return Response.success(isNew);
+    }
+
+    // =============================================================
+    //   (신규) 상품 구매 등록 / 구매 목록 조회
+    // =============================================================
+
+    @Operation(
+            summary = "사용자 상품 구매 등록",
+            description = "결제 후, 사용자가 특정 상품을 구매했음을 userProduct 테이블에 저장합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "구매 등록 성공",
+                    content = @Content(schema = @Schema(implementation = Response.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 실패",
+                    content = @Content(schema = @Schema(implementation = Response.class))
+            ),
+    })
+    @PostMapping("/products/purchase")
+    public Response<UserProduct> purchaseProduct(
+            @RequestParam("productId") Long productId,
+            @RequestParam("paidAmount") Long paidAmount,
+            @RequestHeader(name = "Authorization", required = false) String token,
+            HttpServletRequest request
+    ) {
+        String userEmail = tokenProvider.getUserLoginEmail(request);
+        UserProduct created = userProductService.createUserProduct(userEmail, productId, paidAmount);
+        return Response.success(created);
+    }
+
+    @Operation(
+            summary = "사용자 구매 상품 목록 조회",
+            description = "현재 로그인된 사용자가 구매한 상품 목록(UserProduct) 정보를 조회합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "조회 성공",
+                    content = @Content(schema = @Schema(implementation = Response.class))
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증 실패",
+                    content = @Content(schema = @Schema(implementation = Response.class))
+            ),
+    })
+    @GetMapping("/products")
+    public Response<List<UserProduct>> getMyProducts(HttpServletRequest request) {
+        String userEmail = tokenProvider.getUserLoginEmail(request);
+        List<UserProduct> list = userProductService.getUserProducts(userEmail);
+        return Response.success(list);
     }
 
 }
