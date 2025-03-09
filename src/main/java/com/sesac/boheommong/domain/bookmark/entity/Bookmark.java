@@ -7,15 +7,12 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Getter
-@Table(name = "bookmarks", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "product_id"})
-})
-@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "bookmarks",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "product_id"}))
 public class Bookmark extends BaseEntity {
 
     @Id
