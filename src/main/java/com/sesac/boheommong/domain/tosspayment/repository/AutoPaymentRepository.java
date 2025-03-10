@@ -13,4 +13,6 @@ public interface AutoPaymentRepository extends JpaRepository<AutoPayment, Long> 
      * AutoPayment 엔티티 내부의 user 필드(연관관계) → user.userId
      */
     List<AutoPayment> findByUser_UserId(Long userId);
+
+    List<AutoPayment> findByDayOfMonth(int dayOfMonth);
 }
