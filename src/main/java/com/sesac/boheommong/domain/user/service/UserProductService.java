@@ -1,11 +1,13 @@
 package com.sesac.boheommong.domain.user.service;
 
+import com.sesac.boheommong.domain.user.dto.response.UserProductResponseDto;
 import com.sesac.boheommong.domain.user.entity.User;
 import com.sesac.boheommong.domain.user.entity.UserProduct;
 import com.sesac.boheommong.domain.user.repository.UserProductRepository;
 import com.sesac.boheommong.domain.user.repository.UserRepository;
 import com.sesac.boheommong.global.exception.BaseException;
 import com.sesac.boheommong.global.exception.error.ErrorCode;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,13 +37,22 @@ public class UserProductService {
 
         return userProductRepository.save(userProduct);
     }
-    // UserProductService.java
-    public List<UserProduct> getUserProducts(String userEmail) {
+    /**
+     * 특정 유저가 구매한 상품 목록을 DTO 형태로 반환
+     */
+    @Transactional // import org.springframework.transaction.annotation.Transactional;
+    public List<UserProductResponseDto> getUserProductsDto(String userEmail) {
         User user = userRepository.findByLoginEmail(userEmail)
                 .orElseThrow(() -> BaseException.from(ErrorCode.USER_NOT_FOUND));
 
-        // 바뀐 메서드명
-        return userProductRepository.findAllByUserUserId(user.getUserId());
+        // Lazy 로딩 문제를 방지하려면 fetch join을 사용하거나,
+        // 혹은 같은 트랜잭션 내에서 userProduct.getUser()에 접근해주면 됩니다.
+        List<UserProduct> userProducts = userProductRepository.findAllByUserUserId(user.getUserId());
+
+        // 엔티티 -> DTO 변환
+        return userProducts.stream()
+                .map(UserProductResponseDto::fromEntity)
+                .toList();
     }
 
     public boolean isProductPurchased(String userEmail, Long productId) {

@@ -25,6 +25,8 @@ public class AutoPaymentScheduler {
      * 매일 오전 0시(혹은 원하는 시각)에 실행
      * - “내일 자동결제 예정”인 AutoPayment 찾아서, 알림 발행
      */
+
+//    @Scheduled(cron = "0 */1 * * * *")
     @Scheduled(cron = "0 0 0 * * *")
     public void notifyBeforeAutoPayment() {
         log.info("자동결제 전날 알림 스케줄러 실행...");
@@ -44,8 +46,8 @@ public class AutoPaymentScheduler {
         for (AutoPayment ap : autoPayments) {
             Long userId = ap.getUser().getUserId();
 
-            // 메시지 예시
-            String content = "내일 (" + tomorrowDay + "일) 자동결제가 예정되어 있습니다. (상품ID: " + ap.getProduct().getProductId() + ")";
+            String productName = ap.getProduct().getProductName(); // 상품 이름
+            String content = String.format("내일 (%d일) 자동결제가 예정되어 있습니다. (상품명: %s)", tomorrowDay, productName);
 
             // Redis를 통해 발행(멀티 서버)
             notificationService.publishNotification(

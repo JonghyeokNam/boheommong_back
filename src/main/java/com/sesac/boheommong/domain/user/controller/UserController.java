@@ -1,6 +1,7 @@
 package com.sesac.boheommong.domain.user.controller;
 
 import com.sesac.boheommong.domain.user.dto.request.UserRequestDto;
+import com.sesac.boheommong.domain.user.dto.response.UserProductResponseDto;
 import com.sesac.boheommong.domain.user.dto.response.UserResponseDto;
 import com.sesac.boheommong.domain.user.entity.User;
 import com.sesac.boheommong.domain.user.entity.UserProduct;
@@ -175,10 +176,12 @@ public class UserController {
             ),
     })
     @GetMapping("/products")
-    public Response<List<UserProduct>> getMyProducts(HttpServletRequest request) {
+    public Response<List<UserProductResponseDto>> getMyProducts(HttpServletRequest request) {
         String userEmail = tokenProvider.getUserLoginEmail(request);
-        List<UserProduct> list = userProductService.getUserProducts(userEmail);
+        // 엔티티 대신 DTO를 바로 반환
+        List<UserProductResponseDto> list = userProductService.getUserProductsDto(userEmail);
         return Response.success(list);
     }
-
 }
+
+
