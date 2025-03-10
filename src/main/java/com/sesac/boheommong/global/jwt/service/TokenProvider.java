@@ -89,6 +89,11 @@ public class TokenProvider {
         return null;
     }
 
+    public String getUserLoginEmail(String token) {
+        Claims claims = getClaims(token);  // 아래의 getClaims(token)
+        return claims.getSubject();        // subject = loginEmail
+    }
+
     // 토큰의 클레임 반환
     public Claims getClaims(String token) {
         return Jwts.parser()

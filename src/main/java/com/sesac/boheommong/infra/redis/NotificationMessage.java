@@ -1,5 +1,6 @@
 package com.sesac.boheommong.infra.redis;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sesac.boheommong.domain.notification.entity.Notification;
 import com.sesac.boheommong.domain.notification.enums.NotificationType;
 import lombok.*;
@@ -9,6 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class NotificationMessage {
 
     // 알림 ID (이미 DB에 저장된 경우)

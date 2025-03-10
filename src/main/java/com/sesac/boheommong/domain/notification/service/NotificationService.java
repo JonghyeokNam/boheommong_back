@@ -48,7 +48,10 @@ public class NotificationService {
         emitter.onTimeout(() -> emitterRepository.deleteById(emitterId));
 
         // 최초 연결 시 더미데이터가 없으면 503 오류가 발생하기 때문에 해당 더미 데이터 생성
-        sendToClient(emitter,emitterId, "EventStream Created. [userId=" + userId + "]");
+        Response<Map<String, String>> dummy = Response.success(
+                Map.of("message", "EventStream Created. [userId=" + userId + "]")
+        );
+        sendToClient(emitter, emitterId, dummy);
 
         // SSE의 자동 재연결 기능 때문에 재연결시 lastEventId를 기준으로 이후의 이벤트들만 전송
         if (!lastEventId.isEmpty()) {

@@ -6,6 +6,7 @@ import com.sesac.boheommong.domain.bookmark.repository.BookmarkRepository;
 import com.sesac.boheommong.domain.bookmark.swagger.*;
 import com.sesac.boheommong.domain.insurance.entity.InsuranceProduct;
 import com.sesac.boheommong.domain.insurance.repository.InsuranceProductRepository;
+import com.sesac.boheommong.domain.notification.service.NotificationService;
 import com.sesac.boheommong.domain.user.entity.User;
 import com.sesac.boheommong.domain.user.repository.UserRepository;
 import com.sesac.boheommong.global.exception.BaseException;
@@ -25,6 +26,7 @@ public class BookmarkServiceImpl implements BookmarkService {
     private final BookmarkRepository bookmarkRepository;
     private final UserRepository userRepository;
     private final InsuranceProductRepository insuranceProductRepository;
+    private final NotificationService notificationService;
 
     /**
      * 특정 상품이 북마크되었는지 여부 조회
@@ -86,10 +88,21 @@ public class BookmarkServiceImpl implements BookmarkService {
             // (A) 이미 북마크가 존재하면 -> 물리 삭제
             bookmarkRepository.delete(optionalBookmark.get());
             // 실제 DB row가 삭제되므로 중복키 충돌 안 남.
+            notificationService.publishNotification(
+                    user.getUserId(), // 알림 수신자 ID
+                    "북마크가 해제되었습니다.", // 알림 내용
+                    "/mypage/bookmark" // 클릭 시 이동할 URL (예시)
+            );
         } else {
             // (B) 없으면 -> 새 북마크 생성
             Bookmark bookmark = Bookmark.create(user, product);
             bookmarkRepository.save(bookmark);
+
+            notificationService.publishNotification(
+                    user.getUserId(),
+                    "북마크가 추가되었습니다.",
+                    "/mypage/bookmark"
+            );
         }
     }
 
