@@ -10,6 +10,7 @@ public enum ErrorCode {
     // user
     USER_NOT_FOUND("USER-0000", "해당 회원이 존재하지 않습니다.", ErrorDisplayType.POPUP),
     INVALID_PERMISSION("USER-0001", "허용된 접근이 아닙니다.", ErrorDisplayType.POPUP),
+    TOKEN_EXPIRED("USER-0002", "유효하지 않은 토큰입니다.", ErrorDisplayType.POPUP),
 
     // user health
     USER_HEALTH_ALREADY_EXISTS("HEALTH-0001", "해당 유저의 건강정보가 이미 존재합니다.", ErrorDisplayType.POPUP),

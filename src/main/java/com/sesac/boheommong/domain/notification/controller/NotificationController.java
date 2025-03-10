@@ -4,6 +4,8 @@ import com.sesac.boheommong.domain.notification.dto.NotificationResponseDto;
 import com.sesac.boheommong.domain.notification.enums.NotificationType;
 import com.sesac.boheommong.domain.notification.service.NotificationService;
 import com.sesac.boheommong.domain.notification.swagger.*;
+import com.sesac.boheommong.global.exception.BaseException;
+import com.sesac.boheommong.global.exception.error.ErrorCode;
 import com.sesac.boheommong.global.jwt.service.TokenProvider;
 import com.sesac.boheommong.global.response.Response;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,13 +29,17 @@ public class NotificationController {
     @SubscribeNotification
     @GetMapping("/subscribe")
     public SseEmitter subscribe(
-            HttpServletRequest request,
+            @RequestParam("token") String token,  // <-- 추가
             @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId
     ) {
-        // 1) 로그인 이메일 추출
-        String loginEmail = tokenProvider.getUserLoginEmail(request);
+        // (1) 토큰 검증 & 로그인 이메일 추출
+        if (!tokenProvider.validToken(token)) {
+            throw BaseException.from(ErrorCode.TOKEN_EXPIRED);
+        }
+        // Overload한 getUserLoginEmail(token) 호출
+        String loginEmail = tokenProvider.getUserLoginEmail(token);
 
-        // 2) Service 호출
+        // (2) SSE 구독
         return notificationService.subscribe(loginEmail, lastEventId);
     }
 
