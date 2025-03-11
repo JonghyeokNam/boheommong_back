@@ -26,8 +26,8 @@ public class AutoPaymentScheduler {
      * - “내일 자동결제 예정”인 AutoPayment 찾아서, 알림 발행
      */
 
-//    @Scheduled(cron = "0 0 0 * * *")
-    @Scheduled(cron = "0 */3 * * * *")
+//    @Scheduled(cron = "0 */3 * * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     public void notifyBeforeAutoPayment() {
         log.info("자동결제 전날 알림 스케줄러 실행...");
 
