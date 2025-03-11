@@ -27,7 +27,7 @@ public class AutoPaymentScheduler {
      */
 
 //    @Scheduled(cron = "0 0 0 * * *")
-    @Scheduled(cron = "0 */1 * * * *")
+    @Scheduled(cron = "0 */3 * * * *")
     public void notifyBeforeAutoPayment() {
         log.info("자동결제 전날 알림 스케줄러 실행...");
 
