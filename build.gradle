@@ -23,6 +23,12 @@ repositories {
 	mavenCentral()
 }
 
+bootJar {
+	archiveBaseName = 'boheommong'
+	archiveVersion = ''           // 혹은 '0.0.1'처럼 원하는 버전
+	archiveFileName = 'boheommong.jar'   // 최종 산출물 파일 이름
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -61,6 +67,8 @@ dependencies {
 
 	// redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	implementation 'net.minidev:json-smart:2.4.7'
 
 }
 

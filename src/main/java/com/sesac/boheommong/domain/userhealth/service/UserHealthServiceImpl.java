@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserHealthServiceImpl implements UserHealthService {
@@ -32,11 +34,13 @@ public class UserHealthServiceImpl implements UserHealthService {
 
         // 2) 이미 존재하면 예외
         userHealthRepository.findByUser(user).ifPresent(h -> {
-            throw new IllegalStateException("이미 건강정보가 존재합니다. updateHealth를 사용하세요.");
+            throw BaseException.from(ErrorCode.USER_HEALTH_ALREADY_EXISTS);
         });
 
         // 3) jobType 변환 (기본적으로 'OFFICE','DELIVERY' 등 enum name과 매칭)
         JobType jobEnum = JobType.valueOf(request.jobType());
+
+        String diseaseStr = convertListToCommaString(request.chronicDiseaseList());
 
         // 4) 엔티티 생성
         UserHealth newHealth = UserHealth.create(
@@ -50,7 +54,7 @@ public class UserHealthServiceImpl implements UserHealthService {
                 request.surgeryCount(),
                 request.isSmoker(),
                 request.isDrinker(),
-                request.chronicDiseaseList(),
+                diseaseStr,
                 jobEnum,
                 request.hasChildren(),
                 request.hasOwnHouse(),
@@ -65,6 +69,14 @@ public class UserHealthServiceImpl implements UserHealthService {
         return UserHealthResponseDto.fromEntity(saved);
     }
 
+    // List -> 콤마 구분 문자열 변환
+    private String convertListToCommaString(List<String> list) {
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
+        return String.join(",", list);
+    }
+
     /**
      * [건강정보 수정]
      */
@@ -77,10 +89,12 @@ public class UserHealthServiceImpl implements UserHealthService {
 
         // 2) 기존 health 찾기
         UserHealth existing = userHealthRepository.findByUser(user)
-                .orElseThrow(() -> new IllegalStateException("건강정보가 없습니다. 먼저 생성하세요."));
+                .orElseThrow(() -> BaseException.from(ErrorCode.USER_HEALTH_NOT_FOUND));
 
         // 3) jobType 변환
         JobType jobEnum = JobType.valueOf(request.jobType());
+
+        String diseaseStr = convertListToCommaString(request.chronicDiseaseList());
 
         // 4) update
         existing.updateHealth(
@@ -93,7 +107,7 @@ public class UserHealthServiceImpl implements UserHealthService {
                 request.surgeryCount(),
                 request.isSmoker(),
                 request.isDrinker(),
-                request.chronicDiseaseList(),
+                diseaseStr,
                 jobEnum,
                 request.hasChildren(),
                 request.hasOwnHouse(),
@@ -114,8 +128,9 @@ public class UserHealthServiceImpl implements UserHealthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> BaseException.from(ErrorCode.USER_NOT_FOUND));
 
+        // 2) UserHealth 조회
         UserHealth health = userHealthRepository.findByUser(user)
-                .orElseThrow(() -> new IllegalStateException("건강정보가 없습니다."));
+                .orElseThrow(() -> BaseException.from(ErrorCode.USER_HEALTH_NOT_FOUND));
 
         return UserHealthResponseDto.fromEntity(health);
     }

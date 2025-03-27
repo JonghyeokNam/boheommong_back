@@ -21,8 +21,11 @@ public enum ErrorCode {
     NOTIFICATION_NOT_FOUND("NOTIFICATION-0002", "해당 알림이 존재하지 않습니다.", ErrorDisplayType.POPUP),
 
     // insurance product
-    INSURANCE_PRODUCT_NOT_FOUND("INS-0001", "해당 보험 상품이 존재하지 않습니다.", ErrorDisplayType.POPUP)
-    ;
+    INSURANCE_PRODUCT_NOT_FOUND("INS-0001", "해당 보험 상품이 존재하지 않습니다.", ErrorDisplayType.POPUP),
+
+    // bookmark
+    BOOKMARK_NOT_FOUND("BOOKMARK-0001", "해당 북마크가 존재하지 않습니다.", ErrorDisplayType.POPUP),
+
     ;
 
     private final String code;

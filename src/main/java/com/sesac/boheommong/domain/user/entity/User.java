@@ -13,14 +13,14 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SQLDelete(sql = "UPDATE users SET is_deleted = true, deleted_at = now() where user_id = ?")
+@SQLDelete(sql = "UPDATE users SET is_deleted = true, deleted_at = now() WHERE user_id = ?")
 @SQLRestriction("is_deleted is FALSE")
 @Table(name = "users")
 public class User extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;       // PK
+    private Long userId; // PK
 
     @NotNull
     private String loginEmail; // 로그인 계정(카카오에서 가져온 이메일 or 별도)
@@ -35,13 +35,28 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @Column(name = "totp_enabled")
-    private boolean totpEnabled = true; // 기본 true
-
+    /**
+     * 실제 TOTP 시크릿 (Google Auth에 완전히 등록된 상태)
+     * null이면 아직 최종 등록 안 된 상태
+     */
     @Column(name = "totp_secret")
-    private String totpSecret; // null이면 아직 TOTP 등록 전
+    private String totpSecret;
 
-    // private 생성자
+    /**
+     * QR 생성 후 아직 인증(검증) 전인 임시 시크릿
+     * 사용자가 QR을 스캔/OTP를 검증하면 -> totpSecret에 옮기고 이 값은 null로 되돌린다
+     */
+    @Column(name = "pending_totp_secret")
+    private String pendingTotpSecret;
+
+    /**
+     * 기본적으로 2FA(TOTP) 사용 플래그
+     * ex) 상황에 따라 false로 비활성화할 수도 있음
+     */
+    @Column(name = "totp_enabled")
+    private boolean totpEnabled = true;
+
+    // ---- 생성자 / 팩토리 메서드 ----
     private User(String name, String loginEmail, String userEmail, Role role) {
         this.name = name;
         this.loginEmail = loginEmail;
@@ -49,22 +64,30 @@ public class User extends BaseEntity {
         this.role = role;
     }
 
-    // 정적 팩토리 메서드
     public static User create(String name, String loginEmail, String userEmail, Role role) {
-        return new User(name, loginEmail, userEmail, role);
+        User user = new User(name, loginEmail, userEmail, role);
+        user.totpEnabled = true; // 기본값
+        return user;
     }
 
-    // 필요한 update 메서드가 있다면 추가
     public void updateInfo(String newEmail) {
         this.userEmail = newEmail;
     }
 
-    public void setTotpSecret(String secret) {
-        this.totpSecret = secret;
+    // ---- 비즈니스 로직 ----
+    public void setPendingTotpSecret(String secret) {
+        this.pendingTotpSecret = secret;
+    }
+
+    public void confirmTotpSecret() {
+        // pending 에 있던 값을 최종 totpSecret 으로 적용
+        this.totpSecret = this.pendingTotpSecret;
+        this.pendingTotpSecret = null;
     }
 
     public void disableTotp() {
         this.totpEnabled = false;
         this.totpSecret = null;
+        this.pendingTotpSecret = null;
     }
 }

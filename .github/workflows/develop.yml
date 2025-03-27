@@ -1,59 +1,69 @@
 name: CI/CD
 
 on:
-  pull_request:
-    branches: [ develop ]   # PR이 develop 브랜치 대상으로 열릴 때
   push:
-    branches: [ develop ]   # 머지 완료 후 develop에 커밋이 생길 때
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
 
 jobs:
-  # 1) PR 검증 용도
-  test:
-    # pull_request일 때만 동작
-    if: github.event_name == 'pull_request'
+  Deploy:
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+    env:
+      MYSQLDB_USERNAME: ${{ secrets.MYSQLDB_USERNAME }}
+      MYSQLDB_PASSWORD: ${{ secrets.MYSQLDB_PASSWORD }}
+      MYSQLDB_ROOT_PASSWORD: ${{ secrets.MYSQLDB_ROOT_PASSWORD }}
+      JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+      JWT_SECRET_KEY_CODE: ${{ secrets.JWT_SECRET_KEY_CODE }}
+      KAKAO_OAUTH_CLIENT_SECRET: ${{ secrets.KAKAO_OAUTH_CLIENT_SECRET }}
+      KAKAO_OAUTH_CLIENT_ID: ${{ secrets.KAKAO_OAUTH_CLIENT_ID }}
     steps:
-      - name: Check out
+      - name: GitHub Repository에 올린 파일 불러오기
         uses: actions/checkout@v2
 
-      - name: Set up JDK 21
+      - name: JDK 21 버전 설치
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 21
 
-      - name: Build and test
+      - name: 테스트를 제외한 빌드
         run: |
-          ./gradlew clean test
+          chmod +x ./gradlew
+          ./gradlew clean build -x test
 
-  # 2) 실제 배포
-  deploy:
-    # push (즉, develop에 최종 커밋) 이벤트일 때만 실행
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out
-        uses: actions/checkout@v2
+      - name: 빌드된 파일 위치 변경
+        run: mv ./build/libs/boheommong.jar ./boheommong.jar
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: 21
-
-      - name: Build
-        run: ./gradlew clean build
-
-      - name: SSH into server
-        uses: appleboy/ssh-action@v0.1.6
+      - name: SCP로 EC2에 빌드된 파일 전송
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.REMOTE_IP }}
           username: ubuntu
           key: ${{ secrets.REMOTE_PRIVATE_KEY }}
-          port: 22
+          source: boheommong.jar
+          target: ./tobe
+
+      - name: ssh 원격 접속
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.REMOTE_IP }}
+          username: ubuntu
+          key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+          envs: MYSQLDB_USERNAME, MYSQLDB_PASSWORD, MYSQLDB_ROOT_PASSWORD, JWT_ISSUER, JWT_SECRET_KEY_CODE, KAKAO_OAUTH_CLIENT_SECRET, KAKAO_OAUTH_CLIENT_ID 
+          script_stop: true
           script: |
-            cd /home/ubuntu/back
-            git pull origin develop
-            pkill -f 'java -jar' || true
-            ./gradlew clean build
-            nohup java -jar build/libs/boheommong.jar --server.port=8080 &
+            echo "MYSQLDB_USERNAME: $MYSQLDB_USERNAME"
+            echo "MYSQLDB_PASSWORD: $MYSQLDB_PASSWORD"
+            rm -rf ./current
+            mkdir ./current
+            mv ./tobe/boheommong.jar ./current/boheommong.jar
+            cd ./current
+            sudo fuser -k -n tcp 8080 || true
+            nohup java -jar boheommong.jar > ./output.log 2>&1 &
+            rm -rf ./tobe

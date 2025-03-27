@@ -5,6 +5,11 @@ import com.sesac.boheommong.domain.userhealth.entity.UserHealth;
 import com.sesac.boheommong.domain.userhealth.enums.JobType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * 사용자 건강정보(UserHealth)를 내려줄 때 사용할 응답 DTO
  * record 형식
@@ -15,7 +20,7 @@ public record UserHealthResponseDto(
         Long healthId,
 
         @Schema(description = "연결된 사용자 정보")
-        UserResponseDto user, // User 엔티티의 일부 정보를 담은 userDTO
+        UserResponseDto user,
 
         @Schema(description = "나이", example = "30")
         Integer age,
@@ -47,8 +52,8 @@ public record UserHealthResponseDto(
         @Schema(description = "음주 여부", example = "true")
         Boolean isDrinker,
 
-        @Schema(description = "만성질환 (콤마 구분)", example = "고혈압,당뇨")
-        String chronicDiseaseList,
+        @Schema(description = "만성질환", example = "[\"고혈압\",\"당뇨\"]")
+        List<String> chronicDiseaseList,
 
         @Schema(description = "직업", example = "OFFICE/DELIVERY/CONSTRUCTION 등")
         JobType jobType,
@@ -73,9 +78,15 @@ public record UserHealthResponseDto(
     public static UserHealthResponseDto fromEntity(UserHealth uh) {
         if (uh == null) return null;
 
+        List<String> diseaseList = new ArrayList<>();
+        if (uh.getChronicDiseaseList() != null && !uh.getChronicDiseaseList().isEmpty()) {
+            diseaseList = Arrays.stream(uh.getChronicDiseaseList().split(","))
+                    .map(String::trim)
+                    .collect(Collectors.toList());
+        }
+
         return new UserHealthResponseDto(
                 uh.getHealthId(),
-                // User 엔티티 -> UserResponseDto 변환
                 UserResponseDto.toDto(uh.getUser()),
                 uh.getAge(),
                 uh.getGender(),
@@ -87,7 +98,7 @@ public record UserHealthResponseDto(
                 uh.getSurgeryCount(),
                 uh.getIsSmoker(),
                 uh.getIsDrinker(),
-                uh.getChronicDiseaseList(),
+                diseaseList,
                 uh.getJobType(),
                 uh.getHasChildren(),
                 uh.getHasOwnHouse(),
